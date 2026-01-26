@@ -384,6 +384,75 @@ h3,
   gap: 12px;
 }
 
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(280px, 1fr);
+  gap: 24px;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.dashboard-stat {
+  padding: 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface-alt);
+  border: 1px solid var(--outline);
+  display: grid;
+  gap: 6px;
+}
+
+.dashboard-value {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.dashboard-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.activity-list {
+  display: grid;
+  gap: 10px;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface-alt);
+  border: 1px solid var(--outline);
+  font-size: 14px;
+}
+
+.activity-main {
+  display: grid;
+  gap: 4px;
+}
+
+.activity-title {
+  font-weight: 600;
+}
+
+.activity-meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.activity-time {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
 .hero-metric {
   display: grid;
   gap: 4px;
@@ -1127,6 +1196,10 @@ textarea:focus {
   .hero {
     grid-template-columns: 1fr;
   }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1136,5 +1209,47 @@ textarea:focus {
 
   .participant {
     grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    padding: 20px;
+    flex-wrap: wrap;
+  }
+
+  .nav-item {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .nav {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+
+  .hero {
+    padding: 22px;
+  }
+
+  .hero-text h1 {
+    font-size: 26px;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-actions .button {
+    width: 100%;
+  }
+
+  .activity-item {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

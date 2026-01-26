@@ -43,6 +43,11 @@ const themeCards = Array.from(document.querySelectorAll(".theme-card[data-theme]
 const statTotal = document.getElementById("statTotal");
 const statNext = document.getElementById("statNext");
 const statLast = document.getElementById("statLast");
+const statEvents = document.getElementById("statEvents");
+const statRaffles = document.getElementById("statRaffles");
+const statPending = document.getElementById("statPending");
+const statLastDraw = document.getElementById("statLastDraw");
+const activityList = document.getElementById("activityList");
 
 let participants = loadParticipants();
 let raffleCounter = getNextRaffleNumber();
@@ -121,6 +126,18 @@ function formatDate(value) {
   });
 }
 
+function formatDateTime(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function formatEventDate(dateValue) {
   if (!dateValue) return "-";
   const date = new Date(dateValue);
@@ -151,6 +168,28 @@ function renderStats() {
   }
   const last = participants[0];
   statLast.textContent = last ? formatDate(last.createdAt) : "-";
+  if (statEvents) {
+    statEvents.textContent = events.length;
+  }
+  if (statRaffles) {
+    statRaffles.textContent = raffles.length;
+  }
+  if (statPending) {
+    statPending.textContent = raffles.filter((raffle) => {
+      const statusValue =
+        raffle.status || (raffle.winners && raffle.winners.length > 0 ? "drawn" : "pending");
+      return statusValue === "pending" || statusValue === "drawing";
+    }).length;
+  }
+  if (statLastDraw) {
+    const drawn = raffles
+      .filter((raffle) => raffle.status === "drawn" || (raffle.winners && raffle.winners.length > 0))
+      .map((raffle) => raffle.drawnAt || raffle.createdAt)
+      .filter(Boolean)
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    statLastDraw.textContent = drawn.length > 0 ? formatDate(drawn[0]) : "-";
+  }
+  renderActivity();
 }
 
 function renderList() {
@@ -389,6 +428,79 @@ function renderRaffles() {
   });
 }
 
+function renderActivity() {
+  if (!activityList) return;
+  const items = [];
+
+  participants.forEach((entry) => {
+    items.push({
+      title: "Participant added",
+      meta: entry.name,
+      time: entry.createdAt,
+    });
+  });
+
+  events.forEach((eventItem) => {
+    items.push({
+      title: "Event created",
+      meta: eventItem.name,
+      time: eventItem.createdAt || eventItem.date,
+    });
+  });
+
+  raffles.forEach((raffle) => {
+    const statusValue =
+      raffle.status || (raffle.winners && raffle.winners.length > 0 ? "drawn" : "pending");
+    if (statusValue === "drawn") {
+      items.push({
+        title: `Raffle drawn`,
+        meta: `${raffle.title} · ${raffle.count} winner${raffle.count === 1 ? "" : "s"}`,
+        time: raffle.drawnAt || raffle.createdAt,
+      });
+    } else {
+      items.push({
+        title: "Raffle draft",
+        meta: `${raffle.title} · Pending draw`,
+        time: raffle.createdAt,
+      });
+    }
+  });
+
+  const sorted = items
+    .filter((item) => item.time)
+    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+    .slice(0, 6);
+
+  activityList.innerHTML = "";
+  if (sorted.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No recent activity yet.";
+    activityList.appendChild(empty);
+    return;
+  }
+
+  sorted.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "activity-item";
+    const main = document.createElement("div");
+    main.className = "activity-main";
+    const title = document.createElement("div");
+    title.className = "activity-title";
+    title.textContent = item.title;
+    const meta = document.createElement("div");
+    meta.className = "activity-meta";
+    meta.textContent = item.meta;
+    main.appendChild(title);
+    main.appendChild(meta);
+    const time = document.createElement("div");
+    time.className = "activity-time";
+    time.textContent = formatDateTime(item.time);
+    row.appendChild(main);
+    row.appendChild(time);
+    activityList.appendChild(row);
+  });
+}
 function updateEligibleCount() {
   if (!eligibleCount) return;
   const exclude = raffleExcludeToggle?.checked;
@@ -470,6 +582,7 @@ function addEvent(eventItem) {
   events = [...events, eventItem];
   saveEvents();
   renderEvents();
+  renderStats();
 }
 
 function addRaffle(raffle) {
@@ -477,6 +590,7 @@ function addRaffle(raffle) {
   saveRaffles();
   renderRaffles();
   updateEligibleCount();
+  renderStats();
 }
 
 function clearRaffles() {
@@ -486,6 +600,7 @@ function clearRaffles() {
   saveRaffles();
   renderRaffles();
   updateEligibleCount();
+  renderStats();
   showRaffleHint("All draws cleared.", false);
 }
 
@@ -545,6 +660,7 @@ function removeEvent(id) {
   events = events.filter((eventItem) => eventItem.id !== id);
   saveEvents();
   renderEvents();
+  renderStats();
 }
 
 function handleSubmit(event) {
@@ -626,6 +742,7 @@ function handleEventSubmit(event) {
     time,
     location,
     notes,
+    createdAt: new Date().toISOString(),
   };
 
   addEvent(eventItem);
@@ -768,7 +885,9 @@ function completeRaffleDraw(raffleId) {
   raffles = raffles.map((entry) => (entry.id === raffleId ? updated : entry));
   saveRaffles();
   renderRaffles();
+  renderStats();
   updateEligibleCount();
+  renderStats();
   showRaffleHint("Winners drawn!", false);
 }
 
@@ -819,6 +938,7 @@ function startMajorDraw(raffleId) {
       saveRaffles();
       renderRaffles();
       updateEligibleCount();
+      renderStats();
       showRaffleHint("Winners drawn!", false);
       drawInProgress = false;
       return;
@@ -849,6 +969,7 @@ function startMajorDraw(raffleId) {
       saveRaffles();
       renderRaffles();
       updateEligibleCount();
+      renderStats();
       showRaffleHint("Winners drawn!", false);
       drawInProgress = false;
     }
