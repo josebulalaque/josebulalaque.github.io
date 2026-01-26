@@ -12,3 +12,4 @@ All notable changes to this project will be documented in this file.
 - Expanded theme system with multiple presets, including Barrio Fiesta variants.
 - Improved mobile responsiveness across navigation, panels, and forms.
 - Added CSV export, search, and localStorage persistence.
+- Refined dashboard copy and brand subtitle for a more festive tone.

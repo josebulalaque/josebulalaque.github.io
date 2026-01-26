@@ -11,6 +11,7 @@ Raffler is a lightweight web app for managing raffle participants, events, and d
 - Export participant lists as CSV.
 - Switch between multiple UI themes (Default, Light, Dark, Barrio Fiesta variants, and more).
 - Mobile-friendly layout across pages.
+- Dashboard copy updated for a festive, raffle-focused tone.
 
 ## Pages
 - Dashboard: live stats and recent activity.
