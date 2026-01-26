@@ -1033,8 +1033,8 @@ function setActiveView(viewId) {
   if (viewId === "view-events" && eventNameInput) {
     requestAnimationFrame(() => eventNameInput.focus());
   }
-  if (viewId === "view-raffles" && raffleTitleInput) {
-    requestAnimationFrame(() => raffleTitleInput.focus());
+  if (viewId === "view-raffles" && raffleCountInput) {
+    requestAnimationFrame(() => raffleCountInput.focus());
   }
 }
 
