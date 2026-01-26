@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Raffler - Participant Registry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">R</span>
+          <div>
+            <div class="brand-title">Raffler</div>
+            <div class="brand-sub">Participant registry</div>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item is-active" data-view="dashboard">
+            <span class="nav-dot"></span>
+            Dashboard
+          </button>
+          <button class="nav-item" data-view="participants">
+            <span class="nav-dot"></span>
+            Participants
+          </button>
+          <button class="nav-item" data-view="events">
+            <span class="nav-dot"></span>
+            Events
+          </button>
+          <button class="nav-item" data-view="raffles">
+            <span class="nav-dot"></span>
+            Raffles
+          </button>
+          <button class="nav-item" data-view="settings">
+            <span class="nav-dot"></span>
+            Settings
+          </button>
+        </nav>
+
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">Quick tips</div>
+          <p>Keep names consistent to avoid duplicate registrations.</p>
+          <p>Export your list after each session.</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <section class="view is-active" id="view-dashboard">
+        <header class="hero">
+          <div class="hero-text">
+            <div class="eyebrow">Raffle dashboard</div>
+            <h1>Keep registrations fast and organized</h1>
+            <p>Capture participant names in seconds, keep counts visible, and export anytime.</p>
+            <div class="hero-actions">
+              <button id="exportCsv" class="button ghost">Export CSV</button>
+              <button id="clearAll" class="button danger">Clear all</button>
+            </div>
+          </div>
+          <div class="hero-panel">
+            <div class="hero-panel-title">Session highlights</div>
+            <div class="hero-panel-grid">
+              <div class="hero-metric">
+                <div class="hero-metric-value" id="statTotal">0</div>
+                <div class="hero-metric-label">Total registered</div>
+              </div>
+              <div class="hero-metric">
+                <div class="hero-metric-value" id="statNext">1</div>
+                <div class="hero-metric-label">Next raffle #</div>
+              </div>
+              <div class="hero-metric">
+                <div class="hero-metric-value" id="statLast">-</div>
+                <div class="hero-metric-label">Last added</div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        </section>
+        </section>
+
+        <section class="view" id="view-participants">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>New registration</h2>
+              <p>Enter a participant name to register.</p>
+            </div>
+            <form id="participantForm" class="form">
+              <div class="field">
+                <label for="name">Full name *</label>
+                <input id="name" name="name" type="text" placeholder="Jordan Lee" required />
+              </div>
+              <div class="form-actions">
+                <button type="reset" class="button ghost">Reset</button>
+                <button type="submit" class="button primary">Add participant</button>
+              </div>
+              <div class="form-hint" id="formHint"></div>
+              <div class="form-seed">
+                <button type="button" class="button ghost" id="seedParticipants">
+                  Add 400 dummy participants
+                </button>
+              </div>
+            </form>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Participant list</h2>
+              <div class="list-controls">
+                <input id="search" type="search" placeholder="Search by name" />
+              </div>
+            </div>
+            <div class="list" id="participantList"></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-events">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Create event</h2>
+              <p>Plan your next raffle event and keep details handy.</p>
+            </div>
+            <form id="eventForm" class="form">
+              <div class="field">
+                <label for="eventName">Event name *</label>
+                <input id="eventName" name="eventName" type="text" placeholder="Spring Showcase" required />
+              </div>
+              <div class="field">
+                <label for="eventDate">Event date *</label>
+                <input id="eventDate" name="eventDate" type="date" required />
+              </div>
+              <div class="field">
+                <label for="eventTime">Event time</label>
+                <input id="eventTime" name="eventTime" type="time" />
+              </div>
+              <div class="field">
+                <label for="eventLocation">Location</label>
+                <input id="eventLocation" name="eventLocation" type="text" placeholder="Main hall" />
+              </div>
+              <div class="field field-wide">
+                <label for="eventNotes">Notes</label>
+                <textarea id="eventNotes" name="eventNotes" rows="3" placeholder="Hosts, prizes, reminders..."></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="reset" class="button ghost">Reset</button>
+                <button type="submit" class="button primary">Add event</button>
+              </div>
+              <div class="form-hint" id="eventHint"></div>
+            </form>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Upcoming events</h2>
+              <p>Use this list to track your schedule.</p>
+            </div>
+            <div class="list" id="eventList"></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-raffles">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Create raffle draw</h2>
+              <p>Select how many winners you want and draw from the participant list.</p>
+            </div>
+            <form id="raffleForm" class="form">
+              <div class="field">
+                <label for="raffleTitle">Raffle name *</label>
+                <input id="raffleTitle" name="raffleTitle" type="text" placeholder="Main prize draw" required />
+              </div>
+              <div class="field">
+                <label for="raffleEvent">Event</label>
+                <select id="raffleEvent" name="raffleEvent">
+                  <option value="">No event</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="raffleType">Draw type</label>
+                <select id="raffleType" name="raffleType">
+                  <option value="Minor">Minor</option>
+                  <option value="Major">Major</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="raffleCount">Number of winners *</label>
+                <input id="raffleCount" name="raffleCount" type="number" min="1" value="1" required />
+              </div>
+              <div class="field">
+                <label class="toggle">
+                  <input id="raffleExcludeWinners" name="raffleExcludeWinners" type="checkbox" checked />
+                  <span>Exclude previous winners</span>
+                </label>
+                <div class="toggle-meta" id="eligibleCount">Eligible participants: 0</div>
+              </div>
+              <div class="field field-wide">
+                <label for="raffleNotes">Notes</label>
+                <textarea id="raffleNotes" name="raffleNotes" rows="3" placeholder="Prize details or rules..."></textarea>
+              </div>
+              <div class="form-actions">
+                <button type="reset" class="button ghost">Reset</button>
+                <button type="button" class="button primary" id="createRaffleDraft">Add raffle</button>
+              </div>
+              <div class="form-hint" id="raffleHint"></div>
+            </form>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Recent draws</h2>
+              <p>Each draw stores the winners list for quick reference.</p>
+              <div class="panel-actions">
+                <button id="clearRaffles" class="button ghost">Clear draws</button>
+              </div>
+            </div>
+            <div class="list" id="raffleList"></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-settings">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Theme settings</h2>
+              <p>Switch the interface look and feel.</p>
+            </div>
+            <div class="theme-grid">
+              <button class="theme-card" data-theme="default">
+                <div class="theme-swatch theme-swatch-default"></div>
+                <div>
+                  <div class="theme-title">Default</div>
+                  <div class="theme-sub">Warm, editorial palette</div>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="light">
+                <div class="theme-swatch theme-swatch-light"></div>
+                <div>
+                  <div class="theme-title">Light</div>
+                  <div class="theme-sub">Bright, minimal contrast</div>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="dark">
+                <div class="theme-swatch theme-swatch-dark"></div>
+                <div>
+                  <div class="theme-title">Dark</div>
+                  <div class="theme-sub">High contrast, low glare</div>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="barrio-fiesta">
+                <div class="theme-swatch theme-swatch-barrio"></div>
+                <div>
+                  <div class="theme-title">Barrio Fiesta</div>
+                  <div class="theme-sub">Festive, Filipino-inspired palette</div>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="barrio-fiesta-2">
+                <div class="theme-swatch theme-swatch-barrio-2"></div>
+                <div>
+                  <div class="theme-title">Barrio Fiesta 2</div>
+                  <div class="theme-sub">Alternative palette mapping</div>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="harvest-dawn">
+                <div class="theme-swatch theme-swatch-harvest"></div>
+                <div>
+                  <div class="theme-title">Harvest Dawn</div>
+                  <div class="theme-sub">Warm earth + sunrise tones</div>
+                </div>
+              </button>
+              <button class="theme-card" data-theme="sea-mist">
+                <div class="theme-swatch theme-swatch-sea"></div>
+                <div>
+                  <div class="theme-title">Sea Mist</div>
+                  <div class="theme-sub">Calm teal + mineral gray</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal" id="raffleModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="raffleTitle">
+        <div class="modal-label">Raffle number assigned</div>
+        <div class="modal-number" id="raffleNumberDisplay">#1</div>
+        <p class="modal-text">Share this number with the participant for the draw.</p>
+        <button class="button primary" id="closeRaffleModal">Done</button>
+      </div>
+    </div>
+
+    <div class="modal" id="winnerModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-card winner-card" role="dialog" aria-modal="true" aria-labelledby="winnerTitle">
+        <div class="modal-label" id="winnerTitle">Congratulations!</div>
+        <div class="modal-number winner-numbers" id="winnerNumbers">#1</div>
+      </div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
