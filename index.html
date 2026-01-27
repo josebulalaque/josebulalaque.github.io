@@ -128,6 +128,12 @@
                 <label for="name">Full name *</label>
                 <input id="name" name="name" type="text" placeholder="Jordan Lee" required />
               </div>
+              <div class="field">
+                <label class="toggle">
+                  <input id="isFamily" name="isFamily" type="checkbox" />
+                  <span>Family member</span>
+                </label>
+              </div>
               <div class="form-actions">
                 <button type="reset" class="button ghost">Reset</button>
                 <button type="submit" class="button primary">Add participant</button>
@@ -145,6 +151,11 @@
               <h2>Participant list</h2>
               <div class="list-controls">
                 <input id="search" type="search" placeholder="Search by name" />
+                <select id="filterFamily">
+                  <option value="all">All participants</option>
+                  <option value="family">Family only</option>
+                  <option value="non-family">Non-family</option>
+                </select>
               </div>
             </div>
             <div class="list" id="participantList"></div>
@@ -221,6 +232,14 @@
                 <select id="raffleType" name="raffleType">
                   <option value="Minor">Minor</option>
                   <option value="Major">Major</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="raffleAudience">Eligible audience</label>
+                <select id="raffleAudience" name="raffleAudience">
+                  <option value="everyone">Everyone</option>
+                  <option value="family">Family only</option>
+                  <option value="non-family">Non-family</option>
                 </select>
               </div>
               <div class="field">

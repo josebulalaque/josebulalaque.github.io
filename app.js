@@ -8,6 +8,7 @@ const formHint = document.getElementById("formHint");
 const nameInput = document.getElementById("name");
 const list = document.getElementById("participantList");
 const searchInput = document.getElementById("search");
+const filterFamily = document.getElementById("filterFamily");
 const exportCsv = document.getElementById("exportCsv");
 const clearAll = document.getElementById("clearAll");
 const seedParticipantsButton = document.getElementById("seedParticipants");
@@ -31,6 +32,7 @@ const raffleHint = document.getElementById("raffleHint");
 const raffleTitleInput = document.getElementById("raffleTitle");
 const raffleEventSelect = document.getElementById("raffleEvent");
 const raffleTypeSelect = document.getElementById("raffleType");
+const raffleAudienceSelect = document.getElementById("raffleAudience");
 const raffleCountInput = document.getElementById("raffleCount");
 const raffleNotesInput = document.getElementById("raffleNotes");
 const raffleList = document.getElementById("raffleList");
@@ -194,9 +196,15 @@ function renderStats() {
 
 function renderList() {
   const term = searchInput.value.trim().toLowerCase();
+  const familyFilter = filterFamily ? filterFamily.value : "all";
 
   const filtered = participants.filter((entry) => {
-    return entry.name.toLowerCase().includes(term);
+    const matchesName = entry.name.toLowerCase().includes(term);
+    const matchesFamily =
+      familyFilter === "all" ||
+      (familyFilter === "family" && entry.isFamily) ||
+      (familyFilter === "non-family" && !entry.isFamily);
+    return matchesName && matchesFamily;
   });
   const ordered = [...filtered];
 
@@ -231,6 +239,7 @@ function renderList() {
     meta.className = "participant-meta";
     meta.innerHTML = `
       <span>Registered ${formatDate(entry.createdAt)}</span>
+      ${entry.isFamily ? "<span class=\"tag\">Family</span>" : ""}
     `;
 
     info.appendChild(name);
@@ -379,7 +388,13 @@ function renderRaffles() {
     const eventName = raffle.eventName || "No event";
     const repeatLabel = raffle.excludePreviousWinners ? " · No repeats" : "";
     const typeLabel = raffle.raffleType ? ` · ${raffle.raffleType}` : "";
-    detail.textContent = `${eventName} · ${raffle.count} winner${raffle.count === 1 ? "" : "s"}${typeLabel}${repeatLabel}`;
+    const audienceLabel =
+      raffle.raffleAudience && raffle.raffleAudience !== "everyone"
+        ? raffle.raffleAudience === "family"
+          ? " · Family only"
+          : " · Non-family"
+        : "";
+    detail.textContent = `${eventName} · ${raffle.count} winner${raffle.count === 1 ? "" : "s"}${typeLabel}${audienceLabel}${repeatLabel}`;
 
     card.appendChild(header);
     card.appendChild(detail);
@@ -504,14 +519,23 @@ function renderActivity() {
 function updateEligibleCount() {
   if (!eligibleCount) return;
   const exclude = raffleExcludeToggle?.checked;
-  const count = getEligibleCount(exclude);
+  const audience = raffleAudienceSelect ? raffleAudienceSelect.value : "everyone";
+  const count = getEligibleCount(exclude, audience);
   eligibleCount.textContent = `Eligible participants: ${count}`;
   eligibleCount.style.display = "block";
 }
 
-function getEligibleCount(excludePreviousWinners) {
-  if (!excludePreviousWinners) return participants.length;
-  return participants.filter((entry) => !getPreviousWinnerIds().has(entry.id)).length;
+function getEligiblePool({ excludePreviousWinners, audience } = {}) {
+  return participants.filter((entry) => {
+    if (audience === "family" && !entry.isFamily) return false;
+    if (audience === "non-family" && entry.isFamily) return false;
+    if (excludePreviousWinners && getPreviousWinnerIds().has(entry.id)) return false;
+    return true;
+  });
+}
+
+function getEligibleCount(excludePreviousWinners, audience) {
+  return getEligiblePool({ excludePreviousWinners, audience }).length;
 }
 
 function getRaffleFormData() {
@@ -521,6 +545,7 @@ function getRaffleFormData() {
   const eventId = String(data.get("raffleEvent") || "").trim();
   const raffleType = String(data.get("raffleType") || "Minor").trim() || "Minor";
   const count = Number(data.get("raffleCount"));
+  const raffleAudience = String(data.get("raffleAudience") || "everyone").trim() || "everyone";
   const excludePreviousWinners = data.get("raffleExcludeWinners") === "on";
   const notes = String(data.get("raffleNotes")).trim();
 
@@ -535,6 +560,7 @@ function getRaffleFormData() {
     eventName: events.find((eventItem) => eventItem.id === eventId)?.name || "",
     raffleType,
     count,
+    raffleAudience,
     excludePreviousWinners,
     notes,
   };
@@ -669,6 +695,7 @@ function handleSubmit(event) {
 
   const data = new FormData(form);
   const name = String(data.get("name")).trim();
+  const isFamily = data.get("isFamily") === "on";
 
   if (!name) {
     showHint("Please enter a name.");
@@ -678,6 +705,7 @@ function handleSubmit(event) {
   const entry = {
     id: crypto.randomUUID(),
     name,
+    isFamily,
     raffleNumber: raffleCounter,
     createdAt: new Date().toISOString(),
   };
@@ -696,12 +724,14 @@ function seedParticipants(count = 400) {
 
   const startNumber = raffleCounter;
   const now = Date.now();
+  const familyQuota = Math.min(40, count);
   const generated = Array.from({ length: count }, (_, index) => {
     const raffleNumber = startNumber + index;
     const nameSuffix = String(raffleNumber).padStart(3, "0");
     return {
       id: crypto.randomUUID(),
       name: `Test Participant ${nameSuffix}`,
+      isFamily: index < familyQuota,
       raffleNumber,
       createdAt: new Date(now - index * 1000).toISOString(),
     };
@@ -756,16 +786,8 @@ function getPreviousWinnerIds() {
   );
 }
 
-function pickWinners(count, { excludePreviousWinners } = {}) {
-  const pool = [...participants];
-  if (excludePreviousWinners) {
-    const winnerIds = getPreviousWinnerIds();
-    return shuffle(pool.filter((entry) => !winnerIds.has(entry.id))).slice(0, count).map((entry) => ({
-      id: entry.id,
-      name: entry.name,
-      raffleNumber: entry.raffleNumber,
-    }));
-  }
+function pickWinners(count, { excludePreviousWinners, audience } = {}) {
+  const pool = getEligiblePool({ excludePreviousWinners, audience });
   return shuffle(pool).slice(0, count).map((entry) => ({
     id: entry.id,
     name: entry.name,
@@ -791,7 +813,7 @@ function handleRaffleSubmit(event) {
   const raffleData = getRaffleFormData();
   if (!raffleData) return;
 
-  const eligibleCount = getEligibleCount(raffleData.excludePreviousWinners);
+  const eligibleCount = getEligibleCount(raffleData.excludePreviousWinners, raffleData.raffleAudience);
   if (eligibleCount < raffleData.count) {
     showRaffleHint("Not enough eligible participants for that many winners.");
     return;
@@ -799,6 +821,7 @@ function handleRaffleSubmit(event) {
 
   const winners = pickWinners(raffleData.count, {
     excludePreviousWinners: raffleData.excludePreviousWinners,
+    audience: raffleData.raffleAudience,
   });
 
   const raffle = {
@@ -845,7 +868,7 @@ function drawRaffleNow(raffleId) {
 
   if (drawInProgress) return;
 
-  const eligibleCount = getEligibleCount(raffle.excludePreviousWinners);
+  const eligibleCount = getEligibleCount(raffle.excludePreviousWinners, raffle.raffleAudience);
   if (eligibleCount < raffle.count) {
     showRaffleHint("Not enough eligible participants for that many winners.");
     return;
@@ -873,6 +896,7 @@ function completeRaffleDraw(raffleId) {
 
   const winners = pickWinners(raffle.count, {
     excludePreviousWinners: raffle.excludePreviousWinners,
+    audience: raffle.raffleAudience,
   });
 
   const updated = {
@@ -885,7 +909,6 @@ function completeRaffleDraw(raffleId) {
   raffles = raffles.map((entry) => (entry.id === raffleId ? updated : entry));
   saveRaffles();
   renderRaffles();
-  renderStats();
   updateEligibleCount();
   renderStats();
   showRaffleHint("Winners drawn!", false);
@@ -900,7 +923,7 @@ function startMajorDraw(raffleId) {
   }
   const raffle = raffles[raffleIndex];
 
-  const eligibleCount = getEligibleCount(raffle.excludePreviousWinners);
+  const eligibleCount = getEligibleCount(raffle.excludePreviousWinners, raffle.raffleAudience);
   if (eligibleCount < raffle.count) {
     showRaffleHint("Not enough eligible participants for that many winners.");
     drawInProgress = false;
@@ -909,6 +932,7 @@ function startMajorDraw(raffleId) {
 
   const pendingWinners = pickWinners(raffle.count, {
     excludePreviousWinners: raffle.excludePreviousWinners,
+    audience: raffle.raffleAudience,
   });
 
   let revealed = [];
@@ -982,10 +1006,11 @@ function exportParticipants() {
     return;
   }
 
-  const header = ["Raffle Number", "Name", "Created At"];
+  const header = ["Raffle Number", "Name", "Family Member", "Created At"];
   const rows = participants.map((entry) => [
     entry.raffleNumber,
     entry.name,
+    entry.isFamily ? "Yes" : "No",
     entry.createdAt,
   ]);
 
@@ -1082,6 +1107,9 @@ document.addEventListener("keydown", (event) => {
 
 form.addEventListener("submit", handleSubmit);
 searchInput.addEventListener("input", renderList);
+if (filterFamily) {
+  filterFamily.addEventListener("change", renderList);
+}
 exportCsv.addEventListener("click", exportParticipants);
 clearAll.addEventListener("click", clearParticipants);
 if (seedParticipantsButton) {
@@ -1103,6 +1131,9 @@ if (clearRafflesButton) {
 }
 if (raffleExcludeToggle) {
   raffleExcludeToggle.addEventListener("change", updateEligibleCount);
+}
+if (raffleAudienceSelect) {
+  raffleAudienceSelect.addEventListener("change", updateEligibleCount);
 }
 
 renderStats();
