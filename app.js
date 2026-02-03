@@ -1199,7 +1199,7 @@ function scatterFood() {
     setTimeout(() => {
       item.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rotation}deg)`;
       item.classList.add("is-scattered");
-    }, index * 30);
+    }, index * 50);
   });
 }
 
@@ -1227,8 +1227,8 @@ function generateNumber() {
 
     setTimeout(() => {
       generatorNumber.classList.remove("is-hidden");
-    }, 400);
-  }, 500);
+    }, 800);
+  }, 600);
 
   // Add to history
   generatorHistoryList.unshift(randomNum);
