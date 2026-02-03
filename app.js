@@ -1166,21 +1166,32 @@ let numberAnimationInterval = null;
 function createFoodOverlay() {
   if (!foodOverlay) return;
   foodOverlay.innerHTML = "";
-  const count = 25; // Number of food items
 
-  for (let i = 0; i < count; i++) {
-    const food = document.createElement("span");
-    food.className = "food-item";
-    food.textContent = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
+  // Use a 5x5 grid for even distribution with some random jitter
+  const cols = 5;
+  const rows = 5;
+  const cellWidth = 80 / cols;  // 80% width divided into columns
+  const cellHeight = 80 / rows; // 80% height divided into rows
+  const jitter = 6; // Random offset within cell
 
-    // Random position within the display area
-    const x = Math.random() * 80 + 10; // 10-90%
-    const y = Math.random() * 80 + 10;
-    food.style.left = `${x}%`;
-    food.style.top = `${y}%`;
-    food.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg)`;
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const food = document.createElement("span");
+      food.className = "food-item";
+      food.textContent = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
 
-    foodOverlay.appendChild(food);
+      // Grid position with random jitter
+      const baseX = 10 + col * cellWidth + cellWidth / 2;
+      const baseY = 10 + row * cellHeight + cellHeight / 2;
+      const x = baseX + (Math.random() * jitter * 2 - jitter);
+      const y = baseY + (Math.random() * jitter * 2 - jitter);
+
+      food.style.left = `${x}%`;
+      food.style.top = `${y}%`;
+      food.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg)`;
+
+      foodOverlay.appendChild(food);
+    }
   }
 }
 
