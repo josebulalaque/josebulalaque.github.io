@@ -1251,10 +1251,10 @@ function generateNumber() {
   setTimeout(() => {
     scatterFood();
 
-    // Stop number animation 1 second after food has scattered away
+    // Stop number animation after food has scattered away
     setTimeout(() => {
       stopNumberAnimation(randomNum);
-    }, 1000);
+    }, 1500);
   }, 600);
 
   // Add to history
