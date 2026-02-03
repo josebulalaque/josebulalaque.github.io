@@ -51,6 +51,14 @@ const statPending = document.getElementById("statPending");
 const statLastDraw = document.getElementById("statLastDraw");
 const activityList = document.getElementById("activityList");
 
+// Number Generator elements
+const genMin = document.getElementById("genMin");
+const genMax = document.getElementById("genMax");
+const generateBtn = document.getElementById("generateBtn");
+const generatorNumber = document.getElementById("generatorNumber");
+const foodOverlay = document.getElementById("foodOverlay");
+const generatorHistory = document.getElementById("generatorHistory");
+
 let participants = loadParticipants();
 let raffleCounter = getNextRaffleNumber();
 let events = loadEvents();
@@ -1145,13 +1153,6 @@ setActiveView("view-dashboard");
 updateEligibleCount();
 
 // Number Generator
-const genMin = document.getElementById("genMin");
-const genMax = document.getElementById("genMax");
-const generateBtn = document.getElementById("generateBtn");
-const generatorNumber = document.getElementById("generatorNumber");
-const foodOverlay = document.getElementById("foodOverlay");
-const generatorHistory = document.getElementById("generatorHistory");
-
 const FOOD_EMOJIS = [
   "🍕", "🍔", "🍟", "🌭", "🍿", "🧀", "🥓", "🍗", "🍖", "🥩",
   "🍤", "🍳", "🥚", "🥞", "🧇", "🥐", "🍞", "🥯", "🧁", "🍰",
@@ -1162,6 +1163,7 @@ const FOOD_EMOJIS = [
 let generatorHistoryList = [];
 
 function createFoodOverlay() {
+  if (!foodOverlay) return;
   foodOverlay.innerHTML = "";
   const count = 25; // Number of food items
 
@@ -1182,6 +1184,7 @@ function createFoodOverlay() {
 }
 
 function scatterFood() {
+  if (!foodOverlay) return;
   const items = foodOverlay.querySelectorAll(".food-item");
 
   items.forEach((item, index) => {
@@ -1201,6 +1204,8 @@ function scatterFood() {
 }
 
 function generateNumber() {
+  if (!genMin || !genMax || !generatorNumber) return;
+
   const min = parseInt(genMin.value) || 1;
   const max = parseInt(genMax.value) || 100;
 

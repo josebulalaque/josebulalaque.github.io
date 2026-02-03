@@ -1273,7 +1273,7 @@ textarea:focus {
 
 .generator-display {
   position: relative;
-  background: var(--panel);
+  background: var(--surface-alt);
   border: 2px solid var(--outline);
   border-radius: 24px;
   height: 280px;
@@ -1285,10 +1285,10 @@ textarea:focus {
 }
 
 .generator-number {
-  font-family: var(--font-display);
+  font-family: "Space Grotesk", sans-serif;
   font-size: clamp(80px, 20vw, 160px);
   font-weight: 700;
-  color: var(--heading);
+  color: var(--ink);
   z-index: 1;
   transition: opacity 0.3s, transform 0.3s;
 }
