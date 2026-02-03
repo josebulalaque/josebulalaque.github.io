@@ -1161,6 +1161,7 @@ const FOOD_EMOJIS = [
 ];
 
 let generatorHistoryList = [];
+let numberAnimationInterval = null;
 
 function createFoodOverlay() {
   if (!foodOverlay) return;
@@ -1203,6 +1204,31 @@ function scatterFood() {
   });
 }
 
+function startNumberAnimation(min, max) {
+  if (!generatorNumber) return;
+
+  // Clear any existing animation
+  if (numberAnimationInterval) {
+    clearInterval(numberAnimationInterval);
+  }
+
+  // Rapidly change the number
+  numberAnimationInterval = setInterval(() => {
+    const randomDisplay = Math.floor(Math.random() * (max - min + 1)) + min;
+    generatorNumber.textContent = randomDisplay;
+  }, 50);
+}
+
+function stopNumberAnimation(finalNumber) {
+  if (numberAnimationInterval) {
+    clearInterval(numberAnimationInterval);
+    numberAnimationInterval = null;
+  }
+  if (generatorNumber) {
+    generatorNumber.textContent = finalNumber;
+  }
+}
+
 function generateNumber() {
   if (!genMin || !genMax || !generatorNumber) return;
 
@@ -1216,17 +1242,17 @@ function generateNumber() {
   // Generate random number
   const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
 
-  // Reset display
-  generatorNumber.classList.add("is-hidden");
+  // Reset display and start number animation
+  generatorNumber.classList.remove("is-hidden");
+  startNumberAnimation(min, max);
   createFoodOverlay();
 
   // Animate after brief pause
   setTimeout(() => {
-    generatorNumber.textContent = randomNum;
     scatterFood();
 
     setTimeout(() => {
-      generatorNumber.classList.remove("is-hidden");
+      stopNumberAnimation(randomNum);
     }, 800);
   }, 600);
 
