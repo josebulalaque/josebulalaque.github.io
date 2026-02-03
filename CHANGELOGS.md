@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-02-03
 - Added Number Generator page with food-themed random number reveal animation.
-- Food emojis cover the display and scatter/fly away to reveal the generated number.
+- Large food emojis (96px) cover the display and scatter/fly away with a slow, dramatic animation.
+- Number randomizes behind the food emojis, then settles on the final result after the reveal.
 - Includes min/max range inputs and recent numbers history.
 
 ## 2026-01-26
