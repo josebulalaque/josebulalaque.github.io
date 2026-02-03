@@ -1254,7 +1254,7 @@ function generateNumber() {
     // Stop number animation 1 second after food has scattered away
     setTimeout(() => {
       stopNumberAnimation(randomNum);
-    }, 2500);
+    }, 1000);
   }, 600);
 
   // Add to history
