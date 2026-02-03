@@ -1251,9 +1251,11 @@ function generateNumber() {
   setTimeout(() => {
     scatterFood();
 
+    // Stop number animation 1 second after food has scattered away
+    // Food scatter takes ~2.6s (1.4s transition + 1.25s stagger), plus 1s extra
     setTimeout(() => {
       stopNumberAnimation(randomNum);
-    }, 800);
+    }, 3700);
   }, 600);
 
   // Add to history
