@@ -37,6 +37,10 @@
             <span class="nav-dot"></span>
             Raffles
           </button>
+          <button class="nav-item" data-view="generator">
+            <span class="nav-dot"></span>
+            Number Generator
+          </button>
           <button class="nav-item" data-view="settings">
             <span class="nav-dot"></span>
             Settings
@@ -270,6 +274,37 @@
               </div>
             </div>
             <div class="list" id="raffleList"></div>
+          </div>
+        </section>
+
+        <section class="view" id="view-generator">
+          <div class="panel generator-panel">
+            <div class="panel-header">
+              <h2>Random Number Generator</h2>
+              <p>Generate a random number with a fun food reveal animation.</p>
+            </div>
+
+            <div class="generator-controls">
+              <div class="field">
+                <label for="genMin">Minimum</label>
+                <input id="genMin" type="number" value="1" min="0" />
+              </div>
+              <div class="field">
+                <label for="genMax">Maximum</label>
+                <input id="genMax" type="number" value="100" min="1" />
+              </div>
+              <button id="generateBtn" class="button primary">Generate</button>
+            </div>
+
+            <div class="generator-display" id="generatorDisplay">
+              <div class="generator-number" id="generatorNumber">?</div>
+              <div class="food-overlay" id="foodOverlay"></div>
+            </div>
+
+            <div class="generator-history">
+              <h3>Recent numbers</h3>
+              <div id="generatorHistory"></div>
+            </div>
           </div>
         </section>
 

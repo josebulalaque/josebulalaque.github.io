@@ -1143,3 +1143,115 @@ renderRaffles();
 applyTheme(activeTheme);
 setActiveView("view-dashboard");
 updateEligibleCount();
+
+// Number Generator
+const genMin = document.getElementById("genMin");
+const genMax = document.getElementById("genMax");
+const generateBtn = document.getElementById("generateBtn");
+const generatorNumber = document.getElementById("generatorNumber");
+const foodOverlay = document.getElementById("foodOverlay");
+const generatorHistory = document.getElementById("generatorHistory");
+
+const FOOD_EMOJIS = [
+  "🍕", "🍔", "🍟", "🌭", "🍿", "🧀", "🥓", "🍗", "🍖", "🥩",
+  "🍤", "🍳", "🥚", "🥞", "🧇", "🥐", "🍞", "🥯", "🧁", "🍰",
+  "🍩", "🍪", "🎂", "🍫", "🍬", "🍭", "🍮", "🍦", "🍨", "🍧",
+  "🥝", "🍓", "🍒", "🍑", "🍊", "🍋", "🍌", "🍉", "🍇", "🍎"
+];
+
+let generatorHistoryList = [];
+
+function createFoodOverlay() {
+  foodOverlay.innerHTML = "";
+  const count = 25; // Number of food items
+
+  for (let i = 0; i < count; i++) {
+    const food = document.createElement("span");
+    food.className = "food-item";
+    food.textContent = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
+
+    // Random position within the display area
+    const x = Math.random() * 80 + 10; // 10-90%
+    const y = Math.random() * 80 + 10;
+    food.style.left = `${x}%`;
+    food.style.top = `${y}%`;
+    food.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg)`;
+
+    foodOverlay.appendChild(food);
+  }
+}
+
+function scatterFood() {
+  const items = foodOverlay.querySelectorAll(".food-item");
+
+  items.forEach((item, index) => {
+    // Random scatter direction
+    const angle = Math.random() * 360;
+    const distance = 400 + Math.random() * 300;
+    const tx = Math.cos(angle * Math.PI / 180) * distance;
+    const ty = Math.sin(angle * Math.PI / 180) * distance;
+    const rotation = Math.random() * 720 - 360;
+
+    // Staggered animation
+    setTimeout(() => {
+      item.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rotation}deg)`;
+      item.classList.add("is-scattered");
+    }, index * 30);
+  });
+}
+
+function generateNumber() {
+  const min = parseInt(genMin.value) || 1;
+  const max = parseInt(genMax.value) || 100;
+
+  if (min >= max) {
+    return;
+  }
+
+  // Generate random number
+  const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+
+  // Reset display
+  generatorNumber.classList.add("is-hidden");
+  createFoodOverlay();
+
+  // Animate after brief pause
+  setTimeout(() => {
+    generatorNumber.textContent = randomNum;
+    scatterFood();
+
+    setTimeout(() => {
+      generatorNumber.classList.remove("is-hidden");
+    }, 400);
+  }, 500);
+
+  // Add to history
+  generatorHistoryList.unshift(randomNum);
+  if (generatorHistoryList.length > 10) {
+    generatorHistoryList.pop();
+  }
+  renderGeneratorHistory();
+}
+
+function renderGeneratorHistory() {
+  if (!generatorHistory) return;
+
+  if (generatorHistoryList.length === 0) {
+    generatorHistory.innerHTML = '<div class="empty">No numbers generated yet.</div>';
+    return;
+  }
+
+  generatorHistory.innerHTML = `
+    <div class="history-list">
+      ${generatorHistoryList.map(num => `<span class="history-item">${num}</span>`).join("")}
+    </div>
+  `;
+}
+
+// Event listeners
+if (generateBtn) {
+  generateBtn.addEventListener("click", generateNumber);
+}
+
+// Initialize
+renderGeneratorHistory();
