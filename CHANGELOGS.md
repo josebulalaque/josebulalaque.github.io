@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file.
 - Mixed mode: if fewer than 25 images uploaded, remaining slots filled with emojis.
 - Clear All button to remove all uploaded images and revert to default emojis.
 - Images persist across page refreshes.
+- Added automatic image resizing (max 150x150, JPEG 80% quality) to reduce storage usage.
+- Added image count display showing number of uploaded images.
+- Added error handling for localStorage quota exceeded with user alert.
 
 ## 2026-02-03
 - Added Number Generator page with food-themed random number reveal animation.
