@@ -1351,23 +1351,58 @@ function renderGeneratorHistory() {
   `;
 }
 
+function resizeImage(file, maxSize = 150) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        // Scale down to fit within maxSize while maintaining aspect ratio
+        if (width > height) {
+          if (width > maxSize) {
+            height = Math.round((height * maxSize) / width);
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = Math.round((width * maxSize) / height);
+            height = maxSize;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Export as JPEG with 0.8 quality for smaller file size
+        resolve(canvas.toDataURL("image/jpeg", 0.8));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function handleImageUpload(event) {
   const files = event.target.files;
   if (!files || files.length === 0) return;
 
-  Array.from(files).forEach(file => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      customImages.push(e.target.result); // base64 string
-      const saved = saveCustomImages();
-      if (!saved) {
-        // Remove the image that couldn't be saved
-        customImages.pop();
-        alert("Storage limit reached. Try using smaller images or clear existing ones.");
-      }
-      renderImagesPreview();
-    };
-    reader.readAsDataURL(file);
+  Array.from(files).forEach(async (file) => {
+    const resizedImage = await resizeImage(file, 150);
+    customImages.push(resizedImage);
+    const saved = saveCustomImages();
+    if (!saved) {
+      // Remove the image that couldn't be saved
+      customImages.pop();
+      alert("Storage limit reached. Clear some existing images first.");
+    }
+    renderImagesPreview();
   });
 
   // Reset input so same file can be uploaded again
