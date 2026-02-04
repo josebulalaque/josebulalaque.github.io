@@ -1414,6 +1414,39 @@ textarea:focus {
   object-fit: contain;
 }
 
+.generator-mode {
+  border-top: 1px solid var(--outline);
+  padding-top: 16px;
+  margin-top: 16px;
+}
+
+.generator-mode h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--muted);
+}
+
+.mode-toggles {
+  display: flex;
+  gap: 16px;
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.mode-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
 /* Responsive */
 @media (max-width: 720px) {
   .generator-controls {

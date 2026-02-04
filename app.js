@@ -64,6 +64,8 @@ const generatorHistory = document.getElementById("generatorHistory");
 const imageUpload = document.getElementById("imageUpload");
 const clearImagesBtn = document.getElementById("clearImages");
 const imagesPreview = document.getElementById("imagesPreview");
+const modeImagesToggle = document.getElementById("modeImages");
+const modeEmojisToggle = document.getElementById("modeEmojis");
 
 let participants = loadParticipants();
 let raffleCounter = getNextRaffleNumber();
@@ -1194,6 +1196,14 @@ function createFoodOverlay() {
   if (!foodOverlay) return;
   foodOverlay.innerHTML = "";
 
+  // Check display mode settings
+  const showImages = modeImagesToggle ? modeImagesToggle.checked : true;
+  const showEmojis = modeEmojisToggle ? modeEmojisToggle.checked : true;
+
+  // If both are off, default to emojis
+  const useImages = showImages && customImages.length > 0;
+  const useEmojis = showEmojis || (!showImages && customImages.length === 0);
+
   // Use a 5x5 grid for even distribution with some random jitter
   const cols = 5;
   const rows = 5;
@@ -1202,20 +1212,31 @@ function createFoodOverlay() {
   const cellHeight = 80 / rows; // 80% height divided into rows
   const jitter = 6; // Random offset within cell
 
-  // Build array of items: use all custom images first, fill rest with emojis
+  // Build array of items based on mode
   const items = [];
 
-  // Add all custom images (each image used once)
-  customImages.forEach(src => {
-    items.push({ type: "image", src });
-  });
-
-  // Fill remaining slots with emojis
-  while (items.length < totalItems) {
-    items.push({
-      type: "emoji",
-      content: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)]
+  if (useImages) {
+    // Add custom images
+    customImages.forEach(src => {
+      items.push({ type: "image", src });
     });
+  }
+
+  if (useEmojis) {
+    // Fill remaining slots (or all slots if images disabled) with emojis
+    while (items.length < totalItems) {
+      items.push({
+        type: "emoji",
+        content: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)]
+      });
+    }
+  } else if (useImages && items.length < totalItems) {
+    // Images only mode: repeat images to fill all slots
+    const imageCount = customImages.length;
+    while (items.length < totalItems) {
+      const src = customImages[items.length % imageCount];
+      items.push({ type: "image", src });
+    }
   }
 
   // Shuffle the items array for random distribution
