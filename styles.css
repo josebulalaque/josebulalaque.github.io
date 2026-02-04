@@ -1347,6 +1347,61 @@ textarea:focus {
   font-size: 14px;
 }
 
+/* Generator Image Upload */
+.generator-images {
+  border-top: 1px solid var(--outline);
+  padding-top: 24px;
+  margin-top: 24px;
+}
+
+.generator-images h3 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--muted);
+}
+
+.generator-images-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.generator-images-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.upload-btn {
+  cursor: pointer;
+}
+
+.generator-images-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.generator-images-preview .empty {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.preview-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--outline);
+}
+
+.food-item img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
 /* Responsive */
 @media (max-width: 720px) {
   .generator-controls {

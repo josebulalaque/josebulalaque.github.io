@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2026-02-04
+- Added custom image upload for Number Generator to replace default food emojis.
+- Users can upload multiple images which are stored in localStorage as base64.
+- Preview thumbnails display uploaded images below the generator controls.
+- Mixed mode: if fewer than 25 images uploaded, remaining slots filled with emojis.
+- Clear All button to remove all uploaded images and revert to default emojis.
+- Images persist across page refreshes.
+
 ## 2026-02-03
 - Added Number Generator page with food-themed random number reveal animation.
 - Large food emojis (96px) cover the display and scatter/fly away with a slow, dramatic animation.

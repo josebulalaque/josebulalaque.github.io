@@ -2,6 +2,7 @@ const STORAGE_KEY = "raffler_participants";
 const EVENTS_KEY = "raffler_events";
 const RAFFLES_KEY = "raffler_raffles";
 const THEME_KEY = "raffler_theme";
+const GENERATOR_IMAGES_KEY = "raffler_generator_images";
 
 const form = document.getElementById("participantForm");
 const formHint = document.getElementById("formHint");
@@ -59,12 +60,18 @@ const generatorNumber = document.getElementById("generatorNumber");
 const foodOverlay = document.getElementById("foodOverlay");
 const generatorHistory = document.getElementById("generatorHistory");
 
+// Image upload elements
+const imageUpload = document.getElementById("imageUpload");
+const clearImagesBtn = document.getElementById("clearImages");
+const imagesPreview = document.getElementById("imagesPreview");
+
 let participants = loadParticipants();
 let raffleCounter = getNextRaffleNumber();
 let events = loadEvents();
 let raffles = loadRaffles();
 let activeTheme = loadTheme();
 let drawInProgress = false;
+let customImages = loadCustomImages();
 
 function loadParticipants() {
   const raw = localStorage.getItem(STORAGE_KEY);
@@ -94,6 +101,20 @@ function loadRaffles() {
   } catch {
     return [];
   }
+}
+
+function loadCustomImages() {
+  const raw = localStorage.getItem(GENERATOR_IMAGES_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+function saveCustomImages() {
+  localStorage.setItem(GENERATOR_IMAGES_KEY, JSON.stringify(customImages));
 }
 
 function saveParticipants() {
@@ -1170,15 +1191,48 @@ function createFoodOverlay() {
   // Use a 5x5 grid for even distribution with some random jitter
   const cols = 5;
   const rows = 5;
+  const totalItems = cols * rows; // 25
   const cellWidth = 80 / cols;  // 80% width divided into columns
   const cellHeight = 80 / rows; // 80% height divided into rows
   const jitter = 6; // Random offset within cell
 
+  // Build array of items: use all custom images first, fill rest with emojis
+  const items = [];
+
+  // Add all custom images (each image used once)
+  customImages.forEach(src => {
+    items.push({ type: "image", src });
+  });
+
+  // Fill remaining slots with emojis
+  while (items.length < totalItems) {
+    items.push({
+      type: "emoji",
+      content: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)]
+    });
+  }
+
+  // Shuffle the items array for random distribution
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+
+  let itemIndex = 0;
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       const food = document.createElement("span");
       food.className = "food-item";
-      food.textContent = FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)];
+
+      const item = items[itemIndex++];
+      if (item.type === "image") {
+        const img = document.createElement("img");
+        img.src = item.src;
+        img.alt = "Custom image";
+        food.appendChild(img);
+      } else {
+        food.textContent = item.content;
+      }
 
       // Grid position with random jitter
       const baseX = 10 + col * cellWidth + cellWidth / 2;
@@ -1291,10 +1345,57 @@ function renderGeneratorHistory() {
   `;
 }
 
+function handleImageUpload(event) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      customImages.push(e.target.result); // base64 string
+      saveCustomImages();
+      renderImagesPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  // Reset input so same file can be uploaded again
+  event.target.value = "";
+}
+
+function clearCustomImages() {
+  if (!confirm("Clear all uploaded images?")) return;
+  customImages = [];
+  saveCustomImages();
+  renderImagesPreview();
+}
+
+function renderImagesPreview() {
+  if (!imagesPreview) return;
+
+  if (customImages.length === 0) {
+    imagesPreview.innerHTML = '<span class="empty">No custom images. Using default emojis.</span>';
+    return;
+  }
+
+  imagesPreview.innerHTML = customImages
+    .map(src => `<img src="${src}" class="preview-thumb" alt="Custom image" />`)
+    .join("");
+}
+
 // Event listeners
 if (generateBtn) {
   generateBtn.addEventListener("click", generateNumber);
 }
 
+if (imageUpload) {
+  imageUpload.addEventListener("change", handleImageUpload);
+}
+
+if (clearImagesBtn) {
+  clearImagesBtn.addEventListener("click", clearCustomImages);
+}
+
 // Initialize
 renderGeneratorHistory();
+renderImagesPreview();

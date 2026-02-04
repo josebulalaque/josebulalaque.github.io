@@ -305,6 +305,19 @@
               <h3>Recent numbers</h3>
               <div id="generatorHistory"></div>
             </div>
+
+            <div class="generator-images">
+              <h3>Custom Images (optional)</h3>
+              <p class="generator-images-hint">Upload images to replace food emojis. Leave empty to use default emojis.</p>
+              <div class="generator-images-controls">
+                <label class="button ghost upload-btn">
+                  Upload Images
+                  <input type="file" id="imageUpload" accept="image/*" multiple hidden />
+                </label>
+                <button type="button" id="clearImages" class="button ghost">Clear All</button>
+              </div>
+              <div class="generator-images-preview" id="imagesPreview"></div>
+            </div>
           </div>
         </section>
 
