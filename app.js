@@ -114,7 +114,13 @@ function loadCustomImages() {
 }
 
 function saveCustomImages() {
-  localStorage.setItem(GENERATOR_IMAGES_KEY, JSON.stringify(customImages));
+  try {
+    localStorage.setItem(GENERATOR_IMAGES_KEY, JSON.stringify(customImages));
+    return true;
+  } catch (e) {
+    console.error("Failed to save images to localStorage:", e);
+    return false;
+  }
 }
 
 function saveParticipants() {
@@ -1353,7 +1359,12 @@ function handleImageUpload(event) {
     const reader = new FileReader();
     reader.onload = (e) => {
       customImages.push(e.target.result); // base64 string
-      saveCustomImages();
+      const saved = saveCustomImages();
+      if (!saved) {
+        // Remove the image that couldn't be saved
+        customImages.pop();
+        alert("Storage limit reached. Try using smaller images or clear existing ones.");
+      }
       renderImagesPreview();
     };
     reader.readAsDataURL(file);
@@ -1378,9 +1389,11 @@ function renderImagesPreview() {
     return;
   }
 
-  imagesPreview.innerHTML = customImages
+  const countLabel = `<div class="preview-count">${customImages.length} image${customImages.length === 1 ? "" : "s"} uploaded</div>`;
+  const thumbs = customImages
     .map(src => `<img src="${src}" class="preview-thumb" alt="Custom image" />`)
     .join("");
+  imagesPreview.innerHTML = countLabel + `<div class="preview-thumbs">${thumbs}</div>`;
 }
 
 // Event listeners

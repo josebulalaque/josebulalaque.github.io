@@ -1379,13 +1379,25 @@ textarea:focus {
 
 .generator-images-preview {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .generator-images-preview .empty {
   font-size: 13px;
   color: var(--muted);
+}
+
+.preview-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-dark);
+}
+
+.preview-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .preview-thumb {
