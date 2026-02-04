@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Added image count display showing number of uploaded images.
 - Added error handling for localStorage quota exceeded with user alert.
 - Added display mode toggles to choose between images only, emojis only, or both.
+- Replaced checkboxes with styled toggle switches for a more modern look.
 
 ## 2026-02-03
 - Added Number Generator page with food-themed random number reveal animation.
