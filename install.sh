@@ -44,6 +44,12 @@ echo "==> Installing backend npm dependencies ..."
 cd "$BACKEND_DIR"
 sudo -u "$RUN_USER" npm install --omit=dev
 
+# ─── 3b. Ensure nginx can traverse to the project directory ───
+USER_HOME="$(eval echo ~$RUN_USER)"
+echo "==> Ensuring nginx (www-data) can access project files ..."
+chmod o+x "$USER_HOME"
+echo "    Set o+x on $USER_HOME"
+
 # ─── 4. Write nginx site config ───
 NGINX_CONF="/etc/nginx/sites-available/raffler"
 

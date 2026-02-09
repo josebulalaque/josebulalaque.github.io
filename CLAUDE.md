@@ -121,7 +121,7 @@ cd josebulalaque.github.io
 sudo bash install.sh
 ```
 
-The script installs Node.js 20.x, nginx, npm dependencies, writes the nginx site config and systemd service (with paths derived from the project directory), and starts everything. It is idempotent — safe to re-run.
+The script installs Node.js 20.x, nginx, npm dependencies, writes the nginx site config and systemd service (with paths derived from the project directory), sets home directory permissions for nginx access, and starts everything. It is idempotent — safe to re-run.
 
 ## Development Notes
 

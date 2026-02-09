@@ -57,7 +57,7 @@ cd josebulalaque.github.io
 sudo bash install.sh
 ```
 
-The script is idempotent — safe to re-run on a machine that already has some or all dependencies installed.
+The script is idempotent — safe to re-run on a machine that already has some or all dependencies installed. It also ensures the user home directory has the correct permissions for nginx to serve the project files.
 
 ### Manual setup
 

@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - Backend auto-creates `data/` and `uploads/images/` directories on startup for fresh-clone compatibility.
 - Added `install.sh` — automated setup script that installs Node.js, nginx, npm dependencies, and configures nginx + systemd. Idempotent and path-aware.
 - Added `.gitignore` to exclude `node_modules/`, `raffler-backend/data/`, and `raffler-backend/uploads/images/`.
+- Install script now sets `o+x` on the user home directory so nginx (www-data) can traverse to the project files, preventing 404 errors on fresh installs.
 - Added `CLAUDE.md` project guide with architecture, schema, API reference, and development notes.
 
 ## 2026-02-04
