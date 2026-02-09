@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2026-02-09 — Animated Raffle Draw
+- Redesigned "Draw Now" to open a fullscreen animated popup instead of silently updating the card.
+- Winner badges appear with randomizing number animations, then stop one by one to reveal actual winners.
+- Added emoji/image scatter overlay to the draw animation (same style as Number Generator).
+- Overlay items sized to match winner badges for a dramatic reveal effect.
+- For Major draws, all pending winners are auto-revealed during the animation (no manual reveal step).
+- Modal cannot be closed during the draw animation to prevent accidental dismissal.
+- Clicking any winner badge (in draw popup or "Show Winners") opens a centered popup showing the participant's name.
+- Moved custom image upload section from Number Generator to Settings page for cross-feature reuse.
+- Draw animation respects Settings page display mode toggles (Images/Emojis) and custom uploaded images.
+
 ## 2026-02-09
 - Migrated data storage from browser localStorage to a server-side SQLite database.
 - Added Node.js + Express backend (`raffler-backend/`) with 17 REST API endpoints.

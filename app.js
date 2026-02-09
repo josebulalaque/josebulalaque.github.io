@@ -30,6 +30,7 @@ const raffleNumberDisplay = document.getElementById("raffleNumberDisplay");
 const closeRaffleModal = document.getElementById("closeRaffleModal");
 const winnerModal = document.getElementById("winnerModal");
 const winnerNumbers = document.getElementById("winnerNumbers");
+const drawOverlay = document.getElementById("drawOverlay");
 const eventForm = document.getElementById("eventForm");
 const eventHint = document.getElementById("eventHint");
 const eventNameInput = document.getElementById("eventName");
@@ -595,7 +596,7 @@ function resetHint() {
   formHint.textContent = "";
 }
 
-/* ===== Modals (unchanged) ===== */
+/* ===== Modals ===== */
 function showRaffleModal(number) {
   if (!raffleModal || !raffleNumberDisplay) return;
   raffleNumberDisplay.textContent = `#${number}`;
@@ -613,6 +614,29 @@ function hideRaffleModal() {
   }
 }
 
+function makeBadgeClickable(badge, name, raffleNumber) {
+  badge.style.cursor = "pointer";
+  badge.addEventListener("click", (e) => {
+    e.stopPropagation();
+    // Remove any existing popup
+    const existing = document.querySelector(".badge-popup-backdrop");
+    if (existing) existing.remove();
+
+    const backdrop = document.createElement("div");
+    backdrop.className = "badge-popup-backdrop";
+    const popup = document.createElement("div");
+    popup.className = "badge-popup";
+    popup.innerHTML =
+      `<div class="badge-popup-number">#${raffleNumber}</div>` +
+      `<div class="badge-popup-name">${name}</div>`;
+    backdrop.appendChild(popup);
+    document.body.appendChild(backdrop);
+
+    backdrop.addEventListener("click", () => backdrop.remove());
+    popup.addEventListener("click", (ev) => ev.stopPropagation());
+  });
+}
+
 function showWinnerModal(winners) {
   if (!winnerModal || !winnerNumbers) return;
   winnerNumbers.innerHTML = "";
@@ -624,9 +648,11 @@ function showWinnerModal(winners) {
       badge.className = "winner-badge";
       badge.dataset.seq = String(index + 1);
       badge.textContent = `#${winner.raffleNumber}`;
+      makeBadgeClickable(badge, winner.name, winner.raffleNumber);
       winnerNumbers.appendChild(badge);
     });
   }
+  winnerModal.querySelector(".modal-label").textContent = "Winners";
   winnerModal.classList.add("is-visible");
   winnerModal.setAttribute("aria-hidden", "false");
 }
@@ -635,6 +661,7 @@ function hideWinnerModal() {
   if (!winnerModal) return;
   winnerModal.classList.remove("is-visible");
   winnerModal.setAttribute("aria-hidden", "true");
+  if (drawOverlay) drawOverlay.innerHTML = "";
 }
 
 /* ===== Mutation functions (now async) ===== */
@@ -771,25 +798,197 @@ async function handleRaffleDraft() {
   }
 }
 
+/* ===== Draw overlay (emoji/image scatter in winner modal) ===== */
+function createDrawOverlay() {
+  if (!drawOverlay) return;
+  drawOverlay.innerHTML = "";
+
+  const showImages = modeImagesToggle ? modeImagesToggle.checked : true;
+  const showEmojis = modeEmojisToggle ? modeEmojisToggle.checked : true;
+
+  const useImages = showImages && customImages.length > 0;
+  const useEmojis = showEmojis || (!showImages && customImages.length === 0);
+
+  const cols = 6;
+  const rows = 5;
+  const totalItems = cols * rows;
+  const cellWidth = 80 / cols;
+  const cellHeight = 80 / rows;
+  const jitter = 6;
+
+  const items = [];
+
+  if (useImages) {
+    customImages.forEach((img) => {
+      items.push({ type: "image", src: img.url });
+    });
+  }
+
+  if (useEmojis) {
+    while (items.length < totalItems) {
+      items.push({
+        type: "emoji",
+        content: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)]
+      });
+    }
+  } else if (useImages && items.length < totalItems) {
+    const imageCount = customImages.length;
+    while (items.length < totalItems) {
+      const img = customImages[items.length % imageCount];
+      items.push({ type: "image", src: img.url });
+    }
+  }
+
+  // Shuffle
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+
+  let itemIndex = 0;
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const food = document.createElement("span");
+      food.className = "food-item";
+
+      const item = items[itemIndex++];
+      if (item.type === "image") {
+        const imgEl = document.createElement("img");
+        imgEl.src = item.src;
+        imgEl.alt = "Custom image";
+        food.appendChild(imgEl);
+      } else {
+        food.textContent = item.content;
+      }
+
+      const baseX = 10 + col * cellWidth + cellWidth / 2;
+      const baseY = 10 + row * cellHeight + cellHeight / 2;
+      const x = baseX + (Math.random() * jitter * 2 - jitter);
+      const y = baseY + (Math.random() * jitter * 2 - jitter);
+
+      food.style.left = `${x}%`;
+      food.style.top = `${y}%`;
+      food.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg)`;
+
+      drawOverlay.appendChild(food);
+    }
+  }
+}
+
+function scatterDrawOverlay() {
+  if (!drawOverlay) return;
+  const items = drawOverlay.querySelectorAll(".food-item");
+
+  items.forEach((item, index) => {
+    const angle = Math.random() * 360;
+    const distance = 500 + Math.random() * 400;
+    const tx = Math.cos(angle * Math.PI / 180) * distance;
+    const ty = Math.sin(angle * Math.PI / 180) * distance;
+    const rotation = Math.random() * 720 - 360;
+
+    setTimeout(() => {
+      item.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rotation}deg)`;
+      item.classList.add("is-scattered");
+    }, index * 40);
+  });
+}
+
+/* ===== Animated raffle draw ===== */
 async function drawRaffleNow(raffleId) {
   if (drawInProgress) return;
   drawInProgress = true;
 
-  try {
-    const updated = await api(`/raffles/${raffleId}/draw`, { method: "PUT" });
-    raffles = raffles.map((r) => (r.id === raffleId ? updated : r));
-    renderRaffles();
-    updateEligibleCount();
-    renderStats();
+  const raffle = raffles.find((r) => r.id === raffleId);
+  const count = raffle ? raffle.count : 1;
+  const maxNum = (raffleCounter - 1) || 100;
 
+  // Open the winner modal immediately with animating placeholder badges
+  winnerNumbers.innerHTML = "";
+  for (let i = 0; i < count; i++) {
+    const badge = document.createElement("div");
+    badge.className = "winner-badge is-animating";
+    badge.textContent = "#?";
+    winnerNumbers.appendChild(badge);
+  }
+  winnerModal.querySelector(".modal-label").textContent = "Drawing...";
+  winnerModal.classList.add("is-visible");
+  winnerModal.setAttribute("aria-hidden", "false");
+
+  // Fill modal with emoji/image overlay
+  createDrawOverlay();
+
+  // Start randomizing each badge
+  const badges = [...winnerNumbers.querySelectorAll(".winner-badge")];
+  const intervals = badges.map((badge) =>
+    setInterval(() => {
+      badge.textContent = "#" + (Math.floor(Math.random() * maxNum) + 1);
+    }, 50)
+  );
+
+  const modalOpenedAt = Date.now();
+
+  try {
+    // Fire API call (runs during animation)
+    const updated = await api(`/raffles/${raffleId}/draw`, { method: "PUT" });
+
+    // Collect final winners
+    let finalWinners;
     if (updated.status === "drawing") {
-      showRaffleHint("Major draw started. Reveal winners one at a time.", false);
+      // Major draw — reveal all pending winners via API
+      finalWinners = [];
+      const pendingCount = (updated.winners || []).filter((w) => w.isPending).length;
+      let latestRaffle = updated;
+      for (let i = 0; i < pendingCount; i++) {
+        const result = await api(`/raffles/${raffleId}/reveal`, { method: "PUT" });
+        finalWinners.push(result.revealed);
+        if (result.remaining === 0) {
+          latestRaffle = result.raffle;
+        }
+      }
+      raffles = raffles.map((r) => (r.id === raffleId ? latestRaffle : r));
     } else {
-      showRaffleHint("Winners drawn!", false);
+      // Minor draw — winners already in response
+      finalWinners = updated.winners || [];
+      raffles = raffles.map((r) => (r.id === raffleId ? updated : r));
     }
+
+    // Scatter the overlay away before revealing badges
+    const elapsed = Date.now() - modalOpenedAt;
+    const scatterDelay = Math.max(800 - elapsed, 100);
+    setTimeout(() => scatterDrawOverlay(), scatterDelay);
+
+    // Staggered reveal left to right
+    const minDelay = Math.max(1500 - elapsed, 200);
+    let delay = minDelay;
+
+    badges.forEach((badge, i) => {
+      const winner = finalWinners[i];
+      setTimeout(() => {
+        clearInterval(intervals[i]);
+        badge.textContent = `#${winner.raffleNumber}`;
+        badge.dataset.seq = String(i + 1);
+        badge.classList.remove("is-animating");
+        badge.classList.add("is-revealed");
+        makeBadgeClickable(badge, winner.name, winner.raffleNumber);
+
+        // On last badge, finalize
+        if (i === badges.length - 1) {
+          winnerModal.querySelector(".modal-label").textContent = "Congratulations!";
+          renderRaffles();
+          updateEligibleCount();
+          renderStats();
+          drawInProgress = false;
+        }
+      }, delay);
+
+      delay += 300 + Math.random() * 400; // 300-700ms between each
+    });
   } catch (err) {
+    // On error: stop all animations, clear overlay, close modal, show error
+    intervals.forEach(clearInterval);
+    if (drawOverlay) drawOverlay.innerHTML = "";
+    hideWinnerModal();
     showRaffleHint(err.message);
-  } finally {
     drawInProgress = false;
   }
 }
@@ -909,10 +1108,10 @@ function setActiveView(viewId) {
 
 /* ===== Number Generator (unchanged except image URLs) ===== */
 const FOOD_EMOJIS = [
-  "🍕", "🍔", "🍟", "🌭", "🍿", "🧀", "🥓", "🍗", "🍖", "🥩",
-  "🍤", "🍳", "🥚", "🥞", "🧇", "🥐", "🍞", "🥯", "🧁", "🍰",
-  "🍩", "🍪", "🎂", "🍫", "🍬", "🍭", "🍮", "🍦", "🍨", "🍧",
-  "🥝", "🍓", "🍒", "🍑", "🍊", "🍋", "🍌", "🍉", "🍇", "🍎"
+  "\u{1F355}", "\u{1F354}", "\u{1F35F}", "\u{1F32D}", "\u{1F37F}", "\u{1F9C0}", "\u{1F953}", "\u{1F357}", "\u{1F356}", "\u{1F969}",
+  "\u{1F364}", "\u{1F373}", "\u{1F95A}", "\u{1F95E}", "\u{1F9C7}", "\u{1F950}", "\u{1F35E}", "\u{1F96F}", "\u{1F9C1}", "\u{1F370}",
+  "\u{1F369}", "\u{1F36A}", "\u{1F382}", "\u{1F36B}", "\u{1F36C}", "\u{1F36D}", "\u{1F36E}", "\u{1F366}", "\u{1F368}", "\u{1F367}",
+  "\u{1F95D}", "\u{1F353}", "\u{1F352}", "\u{1F351}", "\u{1F34A}", "\u{1F34B}", "\u{1F34C}", "\u{1F349}", "\u{1F347}", "\u{1F34E}"
 ];
 
 let generatorHistoryList = [];
@@ -1093,7 +1292,10 @@ if (raffleModal) {
 }
 
 if (winnerModal) {
-  winnerModal.addEventListener("click", () => hideWinnerModal());
+  winnerModal.addEventListener("click", () => {
+    if (drawInProgress) return; // Don't allow closing during draw animation
+    hideWinnerModal();
+  });
 }
 
 if (closeRaffleModal) {

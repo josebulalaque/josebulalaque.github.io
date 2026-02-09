@@ -90,7 +90,7 @@ josebulalaque.github.io/
 - **Major draw**: Winners picked server-side but stored with `is_pending=1`. Frontend calls `/reveal` to show winners one at a time. Status transitions: pending → drawing → drawn.
 - **Audience filtering**: Draws can target "everyone", "family", or "non-family".
 - **Previous winner exclusion**: When enabled, participants who won in any completed raffle are excluded from the eligible pool.
-- **Custom images**: Uploaded via multer to `uploads/images/`, served by nginx. Used in Number Generator overlay animation.
+- **Custom images**: Uploaded via multer to `uploads/images/`, served by nginx. Used in Number Generator and raffle draw overlay animations.
 
 ## Service Management
 

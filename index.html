@@ -305,35 +305,6 @@
               <h3>Recent numbers</h3>
               <div id="generatorHistory"></div>
             </div>
-
-            <div class="generator-images">
-              <h3>Custom Images (optional)</h3>
-              <p class="generator-images-hint">Upload images to replace food emojis. Leave empty to use default emojis.</p>
-              <div class="generator-images-controls">
-                <label class="button ghost upload-btn">
-                  Upload Images
-                  <input type="file" id="imageUpload" accept="image/*" multiple hidden />
-                </label>
-                <button type="button" id="clearImages" class="button ghost">Clear All</button>
-              </div>
-              <div class="generator-images-preview" id="imagesPreview"></div>
-
-              <div class="generator-mode">
-                <h4>Display Mode</h4>
-                <div class="mode-toggles">
-                  <label class="mode-toggle">
-                    <span>Images</span>
-                    <input type="checkbox" id="modeImages" checked />
-                    <span class="toggle-switch"></span>
-                  </label>
-                  <label class="mode-toggle">
-                    <span>Emojis</span>
-                    <input type="checkbox" id="modeEmojis" checked />
-                    <span class="toggle-switch"></span>
-                  </label>
-                </div>
-              </div>
-            </div>
           </div>
         </section>
 
@@ -395,6 +366,37 @@
               </button>
             </div>
           </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Custom images</h2>
+              <p>Upload images to use in the number generator and other animations. Leave empty to use default emojis.</p>
+            </div>
+            <div class="generator-images-controls">
+              <label class="button ghost upload-btn">
+                Upload Images
+                <input type="file" id="imageUpload" accept="image/*" multiple hidden />
+              </label>
+              <button type="button" id="clearImages" class="button ghost">Clear All</button>
+            </div>
+            <div class="generator-images-preview" id="imagesPreview"></div>
+
+            <div class="generator-mode">
+              <h4>Display Mode</h4>
+              <div class="mode-toggles">
+                <label class="mode-toggle">
+                  <span>Images</span>
+                  <input type="checkbox" id="modeImages" checked />
+                  <span class="toggle-switch"></span>
+                </label>
+                <label class="mode-toggle">
+                  <span>Emojis</span>
+                  <input type="checkbox" id="modeEmojis" checked />
+                  <span class="toggle-switch"></span>
+                </label>
+              </div>
+            </div>
+          </div>
         </section>
       </main>
     </div>
@@ -414,6 +416,7 @@
       <div class="modal-card winner-card" role="dialog" aria-modal="true" aria-labelledby="winnerTitle">
         <div class="modal-label" id="winnerTitle">Congratulations!</div>
         <div class="modal-number winner-numbers" id="winnerNumbers">#1</div>
+        <div class="draw-overlay" id="drawOverlay"></div>
       </div>
     </div>
 
