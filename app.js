@@ -1,9 +1,19 @@
-const STORAGE_KEY = "raffler_participants";
-const EVENTS_KEY = "raffler_events";
-const RAFFLES_KEY = "raffler_raffles";
-const THEME_KEY = "raffler_theme";
-const GENERATOR_IMAGES_KEY = "raffler_generator_images";
+/* ===== API helper ===== */
+async function api(path, opts = {}) {
+  const res = await fetch(`/api${path}`, {
+    headers: { "Content-Type": "application/json", ...opts.headers },
+    ...opts,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `API error ${res.status}`);
+  }
+  const ct = res.headers.get("content-type") || "";
+  if (ct.includes("application/json")) return res.json();
+  return res;
+}
 
+/* ===== DOM refs (unchanged) ===== */
 const form = document.getElementById("participantForm");
 const formHint = document.getElementById("formHint");
 const nameInput = document.getElementById("name");
@@ -67,125 +77,59 @@ const imagesPreview = document.getElementById("imagesPreview");
 const modeImagesToggle = document.getElementById("modeImages");
 const modeEmojisToggle = document.getElementById("modeEmojis");
 
-let participants = loadParticipants();
-let raffleCounter = getNextRaffleNumber();
-let events = loadEvents();
-let raffles = loadRaffles();
-let activeTheme = loadTheme();
+/* ===== State (loaded from API) ===== */
+let participants = [];
+let raffleCounter = 1;
+let events = [];
+let raffles = [];
+let activeTheme = "default";
 let drawInProgress = false;
-let customImages = loadCustomImages();
+let customImages = [];   // array of { id, url, ... }
 
-function loadParticipants() {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
+/* ===== Data loaders ===== */
+async function loadParticipants() {
+  const data = await api("/participants");
+  participants = data.participants;
+  raffleCounter = data.nextRaffleNumber;
 }
 
-function loadEvents() {
-  const raw = localStorage.getItem(EVENTS_KEY);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
+async function loadEvents() {
+  events = await api("/events");
 }
 
-function loadRaffles() {
-  const raw = localStorage.getItem(RAFFLES_KEY);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
+async function loadRaffles() {
+  raffles = await api("/raffles");
 }
 
-function loadCustomImages() {
-  const raw = localStorage.getItem(GENERATOR_IMAGES_KEY);
-  if (!raw) return [];
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
+async function loadTheme() {
+  const data = await api("/theme");
+  activeTheme = data.theme;
 }
 
-function saveCustomImages() {
-  try {
-    localStorage.setItem(GENERATOR_IMAGES_KEY, JSON.stringify(customImages));
-    return true;
-  } catch (e) {
-    console.error("Failed to save images to localStorage:", e);
-    return false;
-  }
+async function loadCustomImages() {
+  customImages = await api("/images");
 }
 
-function saveParticipants() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(participants));
-}
-
-function saveEvents() {
-  localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
-}
-
-function saveRaffles() {
-  localStorage.setItem(RAFFLES_KEY, JSON.stringify(raffles));
-}
-
-function loadTheme() {
-  const stored = localStorage.getItem(THEME_KEY);
-  return stored || "default";
-}
-
-function saveTheme(theme) {
-  localStorage.setItem(THEME_KEY, theme);
-}
-
-function getNextRaffleNumber() {
-  if (participants.length === 0) return 1;
-  const max = participants.reduce((currentMax, entry) => {
-    const value = Number(entry.raffleNumber) || 0;
-    return Math.max(currentMax, value);
-  }, 0);
-  return max + 1;
-}
-
+/* ===== Formatting helpers (unchanged) ===== */
 function formatDate(value) {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  });
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 function formatDateTime(value) {
   if (!value) return "-";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleString(undefined, {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return date.toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
 function formatEventDate(dateValue) {
   if (!dateValue) return "-";
   const date = new Date(dateValue);
   if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+  return date.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
 }
 
 function formatEventTime(timeValue) {
@@ -194,29 +138,20 @@ function formatEventTime(timeValue) {
   if (!hours || !minutes) return timeValue;
   const date = new Date();
   date.setHours(Number(hours), Number(minutes), 0, 0);
-  return date.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  return date.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
+/* ===== Render functions (unchanged except image URLs) ===== */
 function renderStats() {
   statTotal.textContent = participants.length;
-  if (statNext) {
-    statNext.textContent = raffleCounter;
-  }
+  if (statNext) statNext.textContent = raffleCounter;
   const last = participants[0];
   statLast.textContent = last ? formatDate(last.createdAt) : "-";
-  if (statEvents) {
-    statEvents.textContent = events.length;
-  }
-  if (statRaffles) {
-    statRaffles.textContent = raffles.length;
-  }
+  if (statEvents) statEvents.textContent = events.length;
+  if (statRaffles) statRaffles.textContent = raffles.length;
   if (statPending) {
     statPending.textContent = raffles.filter((raffle) => {
-      const statusValue =
-        raffle.status || (raffle.winners && raffle.winners.length > 0 ? "drawn" : "pending");
+      const statusValue = raffle.status || (raffle.winners && raffle.winners.length > 0 ? "drawn" : "pending");
       return statusValue === "pending" || statusValue === "drawing";
     }).length;
   }
@@ -451,21 +386,42 @@ function renderRaffles() {
 
       card.appendChild(pending);
       card.appendChild(actions);
-    } else {
+    } else if (statusValue === "drawing") {
       const winners = document.createElement("div");
       winners.className = "raffle-winners";
 
-      if (statusValue === "drawing") {
-        const loadingRow = document.createElement("div");
-        loadingRow.className = "raffle-loading";
-        const spinner = document.createElement("div");
-        spinner.className = "spinner";
-        const label = document.createElement("div");
-        label.textContent = "Drawing winners...";
-        loadingRow.appendChild(spinner);
-        loadingRow.appendChild(label);
-        winners.appendChild(loadingRow);
-      }
+      const loadingRow = document.createElement("div");
+      loadingRow.className = "raffle-loading";
+      const spinner = document.createElement("div");
+      spinner.className = "spinner";
+      const label = document.createElement("div");
+      label.textContent = "Drawing winners...";
+      loadingRow.appendChild(spinner);
+      loadingRow.appendChild(label);
+      winners.appendChild(loadingRow);
+
+      // Show already-revealed winners
+      const revealedWinners = (raffle.winners || []).filter((w) => !w.isPending);
+      revealedWinners.forEach((winner) => {
+        const row = document.createElement("div");
+        row.className = "raffle-winner";
+        row.innerHTML = `<span>#${winner.raffleNumber}</span>${winner.name}`;
+        winners.appendChild(row);
+      });
+
+      const actions = document.createElement("div");
+      actions.className = "raffle-actions";
+      const revealButton = document.createElement("button");
+      revealButton.className = "button primary";
+      revealButton.textContent = "Reveal next winner";
+      revealButton.addEventListener("click", () => revealNextWinner(raffle.id));
+      actions.appendChild(revealButton);
+
+      card.appendChild(winners);
+      card.appendChild(actions);
+    } else {
+      const winners = document.createElement("div");
+      winners.className = "raffle-winners";
 
       (raffle.winners || []).forEach((winner) => {
         const row = document.createElement("div");
@@ -485,27 +441,18 @@ function renderActivity() {
   const items = [];
 
   participants.forEach((entry) => {
-    items.push({
-      title: "Participant added",
-      meta: entry.name,
-      time: entry.createdAt,
-    });
+    items.push({ title: "Participant added", meta: entry.name, time: entry.createdAt });
   });
 
   events.forEach((eventItem) => {
-    items.push({
-      title: "Event created",
-      meta: eventItem.name,
-      time: eventItem.createdAt || eventItem.date,
-    });
+    items.push({ title: "Event created", meta: eventItem.name, time: eventItem.createdAt || eventItem.date });
   });
 
   raffles.forEach((raffle) => {
-    const statusValue =
-      raffle.status || (raffle.winners && raffle.winners.length > 0 ? "drawn" : "pending");
+    const statusValue = raffle.status || (raffle.winners && raffle.winners.length > 0 ? "drawn" : "pending");
     if (statusValue === "drawn") {
       items.push({
-        title: `Raffle drawn`,
+        title: "Raffle drawn",
         meta: `${raffle.title} · ${raffle.count} winner${raffle.count === 1 ? "" : "s"}`,
         time: raffle.drawnAt || raffle.createdAt,
       });
@@ -553,6 +500,7 @@ function renderActivity() {
     activityList.appendChild(row);
   });
 }
+
 function updateEligibleCount() {
   if (!eligibleCount) return;
   const exclude = raffleExcludeToggle?.checked;
@@ -563,16 +511,25 @@ function updateEligibleCount() {
 }
 
 function getEligiblePool({ excludePreviousWinners, audience } = {}) {
+  const previousWinnerIds = excludePreviousWinners ? getPreviousWinnerIds() : new Set();
   return participants.filter((entry) => {
     if (audience === "family" && !entry.isFamily) return false;
     if (audience === "non-family" && entry.isFamily) return false;
-    if (excludePreviousWinners && getPreviousWinnerIds().has(entry.id)) return false;
+    if (excludePreviousWinners && previousWinnerIds.has(entry.id)) return false;
     return true;
   });
 }
 
 function getEligibleCount(excludePreviousWinners, audience) {
   return getEligiblePool({ excludePreviousWinners, audience }).length;
+}
+
+function getPreviousWinnerIds() {
+  return new Set(
+    raffles
+      .filter((r) => r.status === "drawn")
+      .flatMap((raffle) => (raffle.winners || []).map((winner) => winner.id))
+  );
 }
 
 function getRaffleFormData() {
@@ -603,6 +560,7 @@ function getRaffleFormData() {
   };
 }
 
+/* ===== Theme ===== */
 function applyTheme(theme) {
   activeTheme = theme;
   document.body.dataset.theme = theme;
@@ -611,6 +569,11 @@ function applyTheme(theme) {
   });
 }
 
+async function saveTheme(theme) {
+  await api("/theme", { method: "PUT", body: JSON.stringify({ theme }) });
+}
+
+/* ===== Hint helpers (unchanged) ===== */
 function showHint(message, isError = true) {
   formHint.textContent = message;
   formHint.style.color = isError ? "var(--danger)" : "var(--success)";
@@ -632,49 +595,13 @@ function resetHint() {
   formHint.textContent = "";
 }
 
-function addParticipant(entry) {
-  participants = [entry, ...participants];
-  saveParticipants();
-  raffleCounter = getNextRaffleNumber();
-  renderStats();
-  renderList();
-  updateEligibleCount();
-}
-
-function addEvent(eventItem) {
-  events = [...events, eventItem];
-  saveEvents();
-  renderEvents();
-  renderStats();
-}
-
-function addRaffle(raffle) {
-  raffles = [raffle, ...raffles];
-  saveRaffles();
-  renderRaffles();
-  updateEligibleCount();
-  renderStats();
-}
-
-function clearRaffles() {
-  const confirmed = window.confirm("Clear all recent draws? This cannot be undone.");
-  if (!confirmed) return;
-  raffles = [];
-  saveRaffles();
-  renderRaffles();
-  updateEligibleCount();
-  renderStats();
-  showRaffleHint("All draws cleared.", false);
-}
-
+/* ===== Modals (unchanged) ===== */
 function showRaffleModal(number) {
   if (!raffleModal || !raffleNumberDisplay) return;
   raffleNumberDisplay.textContent = `#${number}`;
   raffleModal.classList.add("is-visible");
   raffleModal.setAttribute("aria-hidden", "false");
-  if (closeRaffleModal) {
-    closeRaffleModal.focus();
-  }
+  if (closeRaffleModal) closeRaffleModal.focus();
 }
 
 function hideRaffleModal() {
@@ -710,23 +637,49 @@ function hideWinnerModal() {
   winnerModal.setAttribute("aria-hidden", "true");
 }
 
-function removeParticipant(id) {
+/* ===== Mutation functions (now async) ===== */
+async function addParticipant(name, isFamily) {
+  const entry = await api("/participants", {
+    method: "POST",
+    body: JSON.stringify({ name, isFamily }),
+  });
+  participants = [entry, ...participants];
+  raffleCounter = entry.raffleNumber + 1;
+  renderStats();
+  renderList();
+  updateEligibleCount();
+  return entry;
+}
+
+async function removeParticipant(id) {
+  await api(`/participants/${id}`, { method: "DELETE" });
   participants = participants.filter((entry) => entry.id !== id);
-  saveParticipants();
-  raffleCounter = getNextRaffleNumber();
+  raffleCounter = participants.length > 0
+    ? Math.max(...participants.map((p) => p.raffleNumber)) + 1
+    : 1;
   renderStats();
   renderList();
   updateEligibleCount();
 }
 
-function removeEvent(id) {
-  events = events.filter((eventItem) => eventItem.id !== id);
-  saveEvents();
+async function addEvent(eventItem) {
+  const created = await api("/events", {
+    method: "POST",
+    body: JSON.stringify(eventItem),
+  });
+  events = [...events, created];
   renderEvents();
   renderStats();
 }
 
-function handleSubmit(event) {
+async function removeEvent(id) {
+  await api(`/events/${id}`, { method: "DELETE" });
+  events = events.filter((eventItem) => eventItem.id !== id);
+  renderEvents();
+  renderStats();
+}
+
+async function handleSubmit(event) {
   event.preventDefault();
   resetHint();
 
@@ -739,56 +692,41 @@ function handleSubmit(event) {
     return;
   }
 
-  const entry = {
-    id: crypto.randomUUID(),
-    name,
-    isFamily,
-    raffleNumber: raffleCounter,
-    createdAt: new Date().toISOString(),
-  };
-
-  addParticipant(entry);
-  form.reset();
-  showHint("Participant added.", false);
-  showRaffleModal(entry.raffleNumber);
+  try {
+    const entry = await addParticipant(name, isFamily);
+    form.reset();
+    showHint("Participant added.", false);
+    showRaffleModal(entry.raffleNumber);
+  } catch (err) {
+    showHint(err.message);
+  }
 }
 
-function seedParticipants(count = 400) {
+async function seedParticipants(count = 400) {
   const confirmed = window.confirm(
     `Add ${count} dummy participants for testing? This will append to your current list.`
   );
   if (!confirmed) return;
 
-  const startNumber = raffleCounter;
-  const now = Date.now();
-  const familyQuota = Math.min(40, count);
-  const generated = Array.from({ length: count }, (_, index) => {
-    const raffleNumber = startNumber + index;
-    const nameSuffix = String(raffleNumber).padStart(3, "0");
-    return {
-      id: crypto.randomUUID(),
-      name: `Test Participant ${nameSuffix}`,
-      isFamily: index < familyQuota,
-      raffleNumber,
-      createdAt: new Date(now - index * 1000).toISOString(),
-    };
-  });
-
-  participants = [...generated, ...participants];
-  saveParticipants();
-  raffleCounter = getNextRaffleNumber();
-  renderStats();
-  renderList();
-  updateEligibleCount();
-  showHint(`${count} dummy participants added.`, false);
+  try {
+    await api("/participants/seed", {
+      method: "POST",
+      body: JSON.stringify({ count }),
+    });
+    await loadParticipants();
+    renderStats();
+    renderList();
+    updateEligibleCount();
+    showHint(`${count} dummy participants added.`, false);
+  } catch (err) {
+    showHint(err.message);
+  }
 }
 
-function handleEventSubmit(event) {
+async function handleEventSubmit(event) {
   event.preventDefault();
   if (!eventForm) return;
-  if (eventHint) {
-    eventHint.textContent = "";
-  }
+  if (eventHint) eventHint.textContent = "";
 
   const data = new FormData(eventForm);
   const name = String(data.get("eventName")).trim();
@@ -802,286 +740,161 @@ function handleEventSubmit(event) {
     return;
   }
 
-  const eventItem = {
-    id: crypto.randomUUID(),
-    name,
-    date,
-    time,
-    location,
-    notes,
-    createdAt: new Date().toISOString(),
-  };
-
-  addEvent(eventItem);
-  eventForm.reset();
-  showEventHint("Event added.", false);
-}
-
-function getPreviousWinnerIds() {
-  return new Set(
-    raffles.flatMap((raffle) => raffle.winners.map((winner) => winner.id))
-  );
-}
-
-function pickWinners(count, { excludePreviousWinners, audience } = {}) {
-  const pool = getEligiblePool({ excludePreviousWinners, audience });
-  return shuffle(pool).slice(0, count).map((entry) => ({
-    id: entry.id,
-    name: entry.name,
-    raffleNumber: entry.raffleNumber,
-  }));
-}
-
-function shuffle(list) {
-  const pool = [...list];
-  for (let i = pool.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [pool[i], pool[j]] = [pool[j], pool[i]];
+  try {
+    await addEvent({ name, date, time, location, notes });
+    eventForm.reset();
+    showEventHint("Event added.", false);
+  } catch (err) {
+    showEventHint(err.message);
   }
-  return pool;
 }
 
-function handleRaffleSubmit(event) {
-  event.preventDefault();
-  if (raffleHint) {
-    raffleHint.textContent = "";
-  }
+async function handleRaffleDraft() {
+  if (raffleHint) raffleHint.textContent = "";
 
   const raffleData = getRaffleFormData();
   if (!raffleData) return;
 
-  const eligibleCount = getEligibleCount(raffleData.excludePreviousWinners, raffleData.raffleAudience);
-  if (eligibleCount < raffleData.count) {
-    showRaffleHint("Not enough eligible participants for that many winners.");
-    return;
+  try {
+    const created = await api("/raffles", {
+      method: "POST",
+      body: JSON.stringify(raffleData),
+    });
+    raffles = [created, ...raffles];
+    renderRaffles();
+    updateEligibleCount();
+    renderStats();
+    raffleForm.reset();
+    showRaffleHint("Draft saved. Draw when ready.", false);
+  } catch (err) {
+    showRaffleHint(err.message);
   }
-
-  const winners = pickWinners(raffleData.count, {
-    excludePreviousWinners: raffleData.excludePreviousWinners,
-    audience: raffleData.raffleAudience,
-  });
-
-  const raffle = {
-    id: crypto.randomUUID(),
-    ...raffleData,
-    winners,
-    status: "drawn",
-    createdAt: new Date().toISOString(),
-    drawnAt: new Date().toISOString(),
-  };
-
-  addRaffle(raffle);
-  raffleForm.reset();
-  showRaffleHint("Winners drawn!", false);
 }
 
-function handleRaffleDraft() {
-  if (raffleHint) {
-    raffleHint.textContent = "";
-  }
-
-  const raffleData = getRaffleFormData();
-  if (!raffleData) return;
-
-  const raffle = {
-    id: crypto.randomUUID(),
-    ...raffleData,
-    winners: [],
-    status: "pending",
-    createdAt: new Date().toISOString(),
-    drawnAt: null,
-  };
-
-  addRaffle(raffle);
-  raffleForm.reset();
-  showRaffleHint("Draft saved. Draw when ready.", false);
-}
-
-function drawRaffleNow(raffleId) {
-  const raffleIndex = raffles.findIndex((entry) => entry.id === raffleId);
-  if (raffleIndex === -1) return;
-  const raffle = raffles[raffleIndex];
-  if (raffle.status === "drawn" || (raffle.winners && raffle.winners.length > 0)) return;
-
+async function drawRaffleNow(raffleId) {
   if (drawInProgress) return;
+  drawInProgress = true;
 
-  const eligibleCount = getEligibleCount(raffle.excludePreviousWinners, raffle.raffleAudience);
-  if (eligibleCount < raffle.count) {
-    showRaffleHint("Not enough eligible participants for that many winners.");
-    return;
+  try {
+    const updated = await api(`/raffles/${raffleId}/draw`, { method: "PUT" });
+    raffles = raffles.map((r) => (r.id === raffleId ? updated : r));
+    renderRaffles();
+    updateEligibleCount();
+    renderStats();
+
+    if (updated.status === "drawing") {
+      showRaffleHint("Major draw started. Reveal winners one at a time.", false);
+    } else {
+      showRaffleHint("Winners drawn!", false);
+    }
+  } catch (err) {
+    showRaffleHint(err.message);
+  } finally {
+    drawInProgress = false;
   }
-
-  if (raffle.raffleType === "Major") {
-    startMajorDraw(raffleId);
-    return;
-  }
-
-  completeRaffleDraw(raffleId);
 }
 
-function completeRaffleDraw(raffleId) {
-  const raffleIndex = raffles.findIndex((entry) => entry.id === raffleId);
-  if (raffleIndex === -1) return;
-  const raffle = raffles[raffleIndex];
-  if (raffle.status === "drawn" || (raffle.winners && raffle.winners.length > 0)) return;
-
-  const eligibleCount = getEligibleCount(raffle.excludePreviousWinners);
-  if (eligibleCount < raffle.count) {
-    showRaffleHint("Not enough eligible participants for that many winners.");
-    return;
+async function revealNextWinner(raffleId) {
+  try {
+    const result = await api(`/raffles/${raffleId}/reveal`, { method: "PUT" });
+    raffles = raffles.map((r) => (r.id === raffleId ? result.raffle : r));
+    renderRaffles();
+    updateEligibleCount();
+    renderStats();
+    if (result.remaining === 0) {
+      showRaffleHint("All winners revealed!", false);
+    }
+  } catch (err) {
+    showRaffleHint(err.message);
   }
+}
 
-  const winners = pickWinners(raffle.count, {
-    excludePreviousWinners: raffle.excludePreviousWinners,
-    audience: raffle.raffleAudience,
-  });
+async function clearRaffles() {
+  const confirmed = window.confirm("Clear all recent draws? This cannot be undone.");
+  if (!confirmed) return;
 
-  const updated = {
-    ...raffle,
-    winners,
-    status: "drawn",
-    drawnAt: new Date().toISOString(),
-  };
-
-  raffles = raffles.map((entry) => (entry.id === raffleId ? updated : entry));
-  saveRaffles();
+  await api("/raffles", { method: "DELETE" });
+  raffles = [];
   renderRaffles();
   updateEligibleCount();
   renderStats();
-  showRaffleHint("Winners drawn!", false);
+  showRaffleHint("All draws cleared.", false);
 }
 
-function startMajorDraw(raffleId) {
-  drawInProgress = true;
-  const raffleIndex = raffles.findIndex((entry) => entry.id === raffleId);
-  if (raffleIndex === -1) {
-    drawInProgress = false;
-    return;
-  }
-  const raffle = raffles[raffleIndex];
-
-  const eligibleCount = getEligibleCount(raffle.excludePreviousWinners, raffle.raffleAudience);
-  if (eligibleCount < raffle.count) {
-    showRaffleHint("Not enough eligible participants for that many winners.");
-    drawInProgress = false;
-    return;
-  }
-
-  const pendingWinners = pickWinners(raffle.count, {
-    excludePreviousWinners: raffle.excludePreviousWinners,
-    audience: raffle.raffleAudience,
-  });
-
-  let revealed = [];
-  const updated = {
-    ...raffle,
-    winners: revealed,
-    pendingWinners,
-    status: "drawing",
-    drawnAt: null,
-  };
-
-  raffles = raffles.map((entry) => (entry.id === raffleId ? updated : entry));
-  saveRaffles();
-  renderRaffles();
-
-  const timer = setInterval(() => {
-    const current = raffles.find((entry) => entry.id === raffleId);
-    if (!current || !current.pendingWinners || current.pendingWinners.length === 0) {
-      clearInterval(timer);
-      const finished = {
-        ...current,
-        status: "drawn",
-        pendingWinners: [],
-        drawnAt: new Date().toISOString(),
-      };
-      raffles = raffles.map((entry) => (entry.id === raffleId ? finished : entry));
-      saveRaffles();
-      renderRaffles();
-      updateEligibleCount();
-      renderStats();
-      showRaffleHint("Winners drawn!", false);
-      drawInProgress = false;
-      return;
-    }
-
-    const nextWinner = current.pendingWinners[0];
-    revealed = [...(current.winners || []), nextWinner];
-    const remaining = current.pendingWinners.slice(1);
-    const partial = {
-      ...current,
-      winners: revealed,
-      pendingWinners: remaining,
-      status: "drawing",
-    };
-    raffles = raffles.map((entry) => (entry.id === raffleId ? partial : entry));
-    saveRaffles();
-    renderRaffles();
-
-    if (remaining.length === 0) {
-      clearInterval(timer);
-      const finished = {
-        ...partial,
-        status: "drawn",
-        pendingWinners: [],
-        drawnAt: new Date().toISOString(),
-      };
-      raffles = raffles.map((entry) => (entry.id === raffleId ? finished : entry));
-      saveRaffles();
-      renderRaffles();
-      updateEligibleCount();
-      renderStats();
-      showRaffleHint("Winners drawn!", false);
-      drawInProgress = false;
-    }
-  }, 3000);
-}
-
-function exportParticipants() {
-  if (participants.length === 0) {
-    showHint("Add participants before exporting.");
-    return;
-  }
-
-  const header = ["Raffle Number", "Name", "Family Member", "Created At"];
-  const rows = participants.map((entry) => [
-    entry.raffleNumber,
-    entry.name,
-    entry.isFamily ? "Yes" : "No",
-    entry.createdAt,
-  ]);
-
-  const csv = [header, ...rows]
-    .map((row) =>
-      row
-        .map((value) => `"${String(value).replace(/"/g, '""')}"`)
-        .join(",")
-    )
-    .join("\n");
-
-  const blob = new Blob([csv], { type: "text/csv" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "participants.csv";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-}
-
-function clearParticipants() {
+async function clearParticipants() {
   const confirmed = window.confirm("Clear all participants? This cannot be undone.");
   if (!confirmed) return;
+
+  await api("/participants", { method: "DELETE" });
   participants = [];
   raffleCounter = 1;
-  saveParticipants();
   renderStats();
   renderList();
   updateEligibleCount();
   showHint("All participants cleared.", false);
 }
 
+async function exportParticipants() {
+  if (participants.length === 0) {
+    showHint("Add participants before exporting.");
+    return;
+  }
+  // Download CSV from server
+  const link = document.createElement("a");
+  link.href = "/api/participants/export";
+  link.download = "participants.csv";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+}
+
+/* ===== Image handling (now using server uploads) ===== */
+async function handleImageUpload(event) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+
+  const formData = new FormData();
+  Array.from(files).forEach((file) => formData.append("images", file));
+
+  try {
+    const res = await fetch("/api/images", { method: "POST", body: formData });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || "Upload failed");
+    }
+    const saved = await res.json();
+    customImages = [...customImages, ...saved];
+    renderImagesPreview();
+  } catch (err) {
+    alert(err.message);
+  }
+
+  event.target.value = "";
+}
+
+async function clearCustomImages() {
+  if (!confirm("Clear all uploaded images?")) return;
+  await api("/images", { method: "DELETE" });
+  customImages = [];
+  renderImagesPreview();
+}
+
+function renderImagesPreview() {
+  if (!imagesPreview) return;
+
+  if (customImages.length === 0) {
+    imagesPreview.innerHTML = '<span class="empty">No custom images. Using default emojis.</span>';
+    return;
+  }
+
+  const countLabel = `<div class="preview-count">${customImages.length} image${customImages.length === 1 ? "" : "s"} uploaded</div>`;
+  const thumbs = customImages
+    .map((img) => `<img src="${img.url}" class="preview-thumb" alt="Custom image" />`)
+    .join("");
+  imagesPreview.innerHTML = countLabel + `<div class="preview-thumbs">${thumbs}</div>`;
+}
+
+/* ===== View navigation (unchanged) ===== */
 function setActiveView(viewId) {
   views.forEach((view) => {
     view.classList.toggle("is-active", view.id === viewId);
@@ -1089,17 +902,172 @@ function setActiveView(viewId) {
   navItems.forEach((item) => {
     item.classList.toggle("is-active", item.dataset.view === viewId.replace("view-", ""));
   });
-  if (viewId === "view-participants" && nameInput) {
-    requestAnimationFrame(() => nameInput.focus());
+  if (viewId === "view-participants" && nameInput) requestAnimationFrame(() => nameInput.focus());
+  if (viewId === "view-events" && eventNameInput) requestAnimationFrame(() => eventNameInput.focus());
+  if (viewId === "view-raffles" && raffleCountInput) requestAnimationFrame(() => raffleCountInput.focus());
+}
+
+/* ===== Number Generator (unchanged except image URLs) ===== */
+const FOOD_EMOJIS = [
+  "🍕", "🍔", "🍟", "🌭", "🍿", "🧀", "🥓", "🍗", "🍖", "🥩",
+  "🍤", "🍳", "🥚", "🥞", "🧇", "🥐", "🍞", "🥯", "🧁", "🍰",
+  "🍩", "🍪", "🎂", "🍫", "🍬", "🍭", "🍮", "🍦", "🍨", "🍧",
+  "🥝", "🍓", "🍒", "🍑", "🍊", "🍋", "🍌", "🍉", "🍇", "🍎"
+];
+
+let generatorHistoryList = [];
+let numberAnimationInterval = null;
+
+function createFoodOverlay() {
+  if (!foodOverlay) return;
+  foodOverlay.innerHTML = "";
+
+  const showImages = modeImagesToggle ? modeImagesToggle.checked : true;
+  const showEmojis = modeEmojisToggle ? modeEmojisToggle.checked : true;
+
+  const useImages = showImages && customImages.length > 0;
+  const useEmojis = showEmojis || (!showImages && customImages.length === 0);
+
+  const cols = 5;
+  const rows = 5;
+  const totalItems = cols * rows;
+  const cellWidth = 80 / cols;
+  const cellHeight = 80 / rows;
+  const jitter = 6;
+
+  const items = [];
+
+  if (useImages) {
+    customImages.forEach((img) => {
+      items.push({ type: "image", src: img.url });
+    });
   }
-  if (viewId === "view-events" && eventNameInput) {
-    requestAnimationFrame(() => eventNameInput.focus());
+
+  if (useEmojis) {
+    while (items.length < totalItems) {
+      items.push({
+        type: "emoji",
+        content: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)]
+      });
+    }
+  } else if (useImages && items.length < totalItems) {
+    const imageCount = customImages.length;
+    while (items.length < totalItems) {
+      const img = customImages[items.length % imageCount];
+      items.push({ type: "image", src: img.url });
+    }
   }
-  if (viewId === "view-raffles" && raffleCountInput) {
-    requestAnimationFrame(() => raffleCountInput.focus());
+
+  for (let i = items.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+
+  let itemIndex = 0;
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const food = document.createElement("span");
+      food.className = "food-item";
+
+      const item = items[itemIndex++];
+      if (item.type === "image") {
+        const imgEl = document.createElement("img");
+        imgEl.src = item.src;
+        imgEl.alt = "Custom image";
+        food.appendChild(imgEl);
+      } else {
+        food.textContent = item.content;
+      }
+
+      const baseX = 10 + col * cellWidth + cellWidth / 2;
+      const baseY = 10 + row * cellHeight + cellHeight / 2;
+      const x = baseX + (Math.random() * jitter * 2 - jitter);
+      const y = baseY + (Math.random() * jitter * 2 - jitter);
+
+      food.style.left = `${x}%`;
+      food.style.top = `${y}%`;
+      food.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg)`;
+
+      foodOverlay.appendChild(food);
+    }
   }
 }
 
+function scatterFood() {
+  if (!foodOverlay) return;
+  const items = foodOverlay.querySelectorAll(".food-item");
+
+  items.forEach((item, index) => {
+    const angle = Math.random() * 360;
+    const distance = 400 + Math.random() * 300;
+    const tx = Math.cos(angle * Math.PI / 180) * distance;
+    const ty = Math.sin(angle * Math.PI / 180) * distance;
+    const rotation = Math.random() * 720 - 360;
+
+    setTimeout(() => {
+      item.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rotation}deg)`;
+      item.classList.add("is-scattered");
+    }, index * 50);
+  });
+}
+
+function startNumberAnimation(min, max) {
+  if (!generatorNumber) return;
+  if (numberAnimationInterval) clearInterval(numberAnimationInterval);
+  numberAnimationInterval = setInterval(() => {
+    const randomDisplay = Math.floor(Math.random() * (max - min + 1)) + min;
+    generatorNumber.textContent = randomDisplay;
+  }, 50);
+}
+
+function stopNumberAnimation(finalNumber) {
+  if (numberAnimationInterval) {
+    clearInterval(numberAnimationInterval);
+    numberAnimationInterval = null;
+  }
+  if (generatorNumber) generatorNumber.textContent = finalNumber;
+}
+
+function generateNumber() {
+  if (!genMin || !genMax || !generatorNumber) return;
+
+  const min = parseInt(genMin.value) || 1;
+  const max = parseInt(genMax.value) || 100;
+
+  if (min >= max) return;
+
+  const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
+
+  generatorNumber.classList.remove("is-hidden");
+  startNumberAnimation(min, max);
+  createFoodOverlay();
+
+  setTimeout(() => {
+    scatterFood();
+    setTimeout(() => {
+      stopNumberAnimation(randomNum);
+    }, 1500);
+  }, 600);
+
+  generatorHistoryList.unshift(randomNum);
+  if (generatorHistoryList.length > 10) generatorHistoryList.pop();
+  renderGeneratorHistory();
+}
+
+function renderGeneratorHistory() {
+  if (!generatorHistory) return;
+  if (generatorHistoryList.length === 0) {
+    generatorHistory.innerHTML = '<div class="empty">No numbers generated yet.</div>';
+    return;
+  }
+  generatorHistory.innerHTML = `
+    <div class="history-list">
+      ${generatorHistoryList.map((num) => `<span class="history-item">${num}</span>`).join("")}
+    </div>
+  `;
+}
+
+/* ===== Event listeners ===== */
 navItems.forEach((item) => {
   item.addEventListener("click", () => {
     const target = item.dataset.view;
@@ -1125,9 +1093,7 @@ if (raffleModal) {
 }
 
 if (winnerModal) {
-  winnerModal.addEventListener("click", () => {
-    hideWinnerModal();
-  });
+  winnerModal.addEventListener("click", () => hideWinnerModal());
 }
 
 if (closeRaffleModal) {
@@ -1144,327 +1110,43 @@ document.addEventListener("keydown", (event) => {
 
 form.addEventListener("submit", handleSubmit);
 searchInput.addEventListener("input", renderList);
-if (filterFamily) {
-  filterFamily.addEventListener("change", renderList);
-}
+if (filterFamily) filterFamily.addEventListener("change", renderList);
 exportCsv.addEventListener("click", exportParticipants);
 clearAll.addEventListener("click", clearParticipants);
-if (seedParticipantsButton) {
-  seedParticipantsButton.addEventListener("click", () => seedParticipants(400));
-}
-if (eventForm) {
-  eventForm.addEventListener("submit", handleEventSubmit);
-}
-if (createRaffleDraftButton) {
-  createRaffleDraftButton.addEventListener("click", handleRaffleDraft);
-}
-if (raffleForm) {
-  raffleForm.addEventListener("reset", () => {
-    requestAnimationFrame(updateEligibleCount);
-  });
-}
-if (clearRafflesButton) {
-  clearRafflesButton.addEventListener("click", clearRaffles);
-}
-if (raffleExcludeToggle) {
-  raffleExcludeToggle.addEventListener("change", updateEligibleCount);
-}
-if (raffleAudienceSelect) {
-  raffleAudienceSelect.addEventListener("change", updateEligibleCount);
-}
+if (seedParticipantsButton) seedParticipantsButton.addEventListener("click", () => seedParticipants(400));
+if (eventForm) eventForm.addEventListener("submit", handleEventSubmit);
+if (createRaffleDraftButton) createRaffleDraftButton.addEventListener("click", handleRaffleDraft);
+if (raffleForm) raffleForm.addEventListener("reset", () => requestAnimationFrame(updateEligibleCount));
+if (clearRafflesButton) clearRafflesButton.addEventListener("click", clearRaffles);
+if (raffleExcludeToggle) raffleExcludeToggle.addEventListener("change", updateEligibleCount);
+if (raffleAudienceSelect) raffleAudienceSelect.addEventListener("change", updateEligibleCount);
+if (generateBtn) generateBtn.addEventListener("click", generateNumber);
+if (imageUpload) imageUpload.addEventListener("change", handleImageUpload);
+if (clearImagesBtn) clearImagesBtn.addEventListener("click", clearCustomImages);
 
-renderStats();
-renderList();
-renderEvents();
-renderRaffles();
-applyTheme(activeTheme);
-setActiveView("view-dashboard");
-updateEligibleCount();
-
-// Number Generator
-const FOOD_EMOJIS = [
-  "🍕", "🍔", "🍟", "🌭", "🍿", "🧀", "🥓", "🍗", "🍖", "🥩",
-  "🍤", "🍳", "🥚", "🥞", "🧇", "🥐", "🍞", "🥯", "🧁", "🍰",
-  "🍩", "🍪", "🎂", "🍫", "🍬", "🍭", "🍮", "🍦", "🍨", "🍧",
-  "🥝", "🍓", "🍒", "🍑", "🍊", "🍋", "🍌", "🍉", "🍇", "🍎"
-];
-
-let generatorHistoryList = [];
-let numberAnimationInterval = null;
-
-function createFoodOverlay() {
-  if (!foodOverlay) return;
-  foodOverlay.innerHTML = "";
-
-  // Check display mode settings
-  const showImages = modeImagesToggle ? modeImagesToggle.checked : true;
-  const showEmojis = modeEmojisToggle ? modeEmojisToggle.checked : true;
-
-  // If both are off, default to emojis
-  const useImages = showImages && customImages.length > 0;
-  const useEmojis = showEmojis || (!showImages && customImages.length === 0);
-
-  // Use a 5x5 grid for even distribution with some random jitter
-  const cols = 5;
-  const rows = 5;
-  const totalItems = cols * rows; // 25
-  const cellWidth = 80 / cols;  // 80% width divided into columns
-  const cellHeight = 80 / rows; // 80% height divided into rows
-  const jitter = 6; // Random offset within cell
-
-  // Build array of items based on mode
-  const items = [];
-
-  if (useImages) {
-    // Add custom images
-    customImages.forEach(src => {
-      items.push({ type: "image", src });
-    });
+/* ===== Async init ===== */
+async function initApp() {
+  try {
+    await Promise.all([
+      loadParticipants(),
+      loadEvents(),
+      loadRaffles(),
+      loadTheme(),
+      loadCustomImages(),
+    ]);
+  } catch (err) {
+    console.error("Failed to load data from API:", err);
   }
 
-  if (useEmojis) {
-    // Fill remaining slots (or all slots if images disabled) with emojis
-    while (items.length < totalItems) {
-      items.push({
-        type: "emoji",
-        content: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)]
-      });
-    }
-  } else if (useImages && items.length < totalItems) {
-    // Images only mode: repeat images to fill all slots
-    const imageCount = customImages.length;
-    while (items.length < totalItems) {
-      const src = customImages[items.length % imageCount];
-      items.push({ type: "image", src });
-    }
-  }
-
-  // Shuffle the items array for random distribution
-  for (let i = items.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [items[i], items[j]] = [items[j], items[i]];
-  }
-
-  let itemIndex = 0;
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      const food = document.createElement("span");
-      food.className = "food-item";
-
-      const item = items[itemIndex++];
-      if (item.type === "image") {
-        const img = document.createElement("img");
-        img.src = item.src;
-        img.alt = "Custom image";
-        food.appendChild(img);
-      } else {
-        food.textContent = item.content;
-      }
-
-      // Grid position with random jitter
-      const baseX = 10 + col * cellWidth + cellWidth / 2;
-      const baseY = 10 + row * cellHeight + cellHeight / 2;
-      const x = baseX + (Math.random() * jitter * 2 - jitter);
-      const y = baseY + (Math.random() * jitter * 2 - jitter);
-
-      food.style.left = `${x}%`;
-      food.style.top = `${y}%`;
-      food.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg)`;
-
-      foodOverlay.appendChild(food);
-    }
-  }
-}
-
-function scatterFood() {
-  if (!foodOverlay) return;
-  const items = foodOverlay.querySelectorAll(".food-item");
-
-  items.forEach((item, index) => {
-    // Random scatter direction
-    const angle = Math.random() * 360;
-    const distance = 400 + Math.random() * 300;
-    const tx = Math.cos(angle * Math.PI / 180) * distance;
-    const ty = Math.sin(angle * Math.PI / 180) * distance;
-    const rotation = Math.random() * 720 - 360;
-
-    // Staggered animation
-    setTimeout(() => {
-      item.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rotation}deg)`;
-      item.classList.add("is-scattered");
-    }, index * 50);
-  });
-}
-
-function startNumberAnimation(min, max) {
-  if (!generatorNumber) return;
-
-  // Clear any existing animation
-  if (numberAnimationInterval) {
-    clearInterval(numberAnimationInterval);
-  }
-
-  // Rapidly change the number
-  numberAnimationInterval = setInterval(() => {
-    const randomDisplay = Math.floor(Math.random() * (max - min + 1)) + min;
-    generatorNumber.textContent = randomDisplay;
-  }, 50);
-}
-
-function stopNumberAnimation(finalNumber) {
-  if (numberAnimationInterval) {
-    clearInterval(numberAnimationInterval);
-    numberAnimationInterval = null;
-  }
-  if (generatorNumber) {
-    generatorNumber.textContent = finalNumber;
-  }
-}
-
-function generateNumber() {
-  if (!genMin || !genMax || !generatorNumber) return;
-
-  const min = parseInt(genMin.value) || 1;
-  const max = parseInt(genMax.value) || 100;
-
-  if (min >= max) {
-    return;
-  }
-
-  // Generate random number
-  const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
-
-  // Reset display and start number animation
-  generatorNumber.classList.remove("is-hidden");
-  startNumberAnimation(min, max);
-  createFoodOverlay();
-
-  // Animate after brief pause
-  setTimeout(() => {
-    scatterFood();
-
-    // Stop number animation after food has scattered away
-    setTimeout(() => {
-      stopNumberAnimation(randomNum);
-    }, 1500);
-  }, 600);
-
-  // Add to history
-  generatorHistoryList.unshift(randomNum);
-  if (generatorHistoryList.length > 10) {
-    generatorHistoryList.pop();
-  }
+  renderStats();
+  renderList();
+  renderEvents();
+  renderRaffles();
+  applyTheme(activeTheme);
+  setActiveView("view-dashboard");
+  updateEligibleCount();
   renderGeneratorHistory();
-}
-
-function renderGeneratorHistory() {
-  if (!generatorHistory) return;
-
-  if (generatorHistoryList.length === 0) {
-    generatorHistory.innerHTML = '<div class="empty">No numbers generated yet.</div>';
-    return;
-  }
-
-  generatorHistory.innerHTML = `
-    <div class="history-list">
-      ${generatorHistoryList.map(num => `<span class="history-item">${num}</span>`).join("")}
-    </div>
-  `;
-}
-
-function resizeImage(file, maxSize = 150) {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-
-        // Scale down to fit within maxSize while maintaining aspect ratio
-        if (width > height) {
-          if (width > maxSize) {
-            height = Math.round((height * maxSize) / width);
-            width = maxSize;
-          }
-        } else {
-          if (height > maxSize) {
-            width = Math.round((width * maxSize) / height);
-            height = maxSize;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Export as JPEG with 0.8 quality for smaller file size
-        resolve(canvas.toDataURL("image/jpeg", 0.8));
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function handleImageUpload(event) {
-  const files = event.target.files;
-  if (!files || files.length === 0) return;
-
-  Array.from(files).forEach(async (file) => {
-    const resizedImage = await resizeImage(file, 150);
-    customImages.push(resizedImage);
-    const saved = saveCustomImages();
-    if (!saved) {
-      // Remove the image that couldn't be saved
-      customImages.pop();
-      alert("Storage limit reached. Clear some existing images first.");
-    }
-    renderImagesPreview();
-  });
-
-  // Reset input so same file can be uploaded again
-  event.target.value = "";
-}
-
-function clearCustomImages() {
-  if (!confirm("Clear all uploaded images?")) return;
-  customImages = [];
-  saveCustomImages();
   renderImagesPreview();
 }
 
-function renderImagesPreview() {
-  if (!imagesPreview) return;
-
-  if (customImages.length === 0) {
-    imagesPreview.innerHTML = '<span class="empty">No custom images. Using default emojis.</span>';
-    return;
-  }
-
-  const countLabel = `<div class="preview-count">${customImages.length} image${customImages.length === 1 ? "" : "s"} uploaded</div>`;
-  const thumbs = customImages
-    .map(src => `<img src="${src}" class="preview-thumb" alt="Custom image" />`)
-    .join("");
-  imagesPreview.innerHTML = countLabel + `<div class="preview-thumbs">${thumbs}</div>`;
-}
-
-// Event listeners
-if (generateBtn) {
-  generateBtn.addEventListener("click", generateNumber);
-}
-
-if (imageUpload) {
-  imageUpload.addEventListener("change", handleImageUpload);
-}
-
-if (clearImagesBtn) {
-  clearImagesBtn.addEventListener("click", clearCustomImages);
-}
-
-// Initialize
-renderGeneratorHistory();
-renderImagesPreview();
+initApp();

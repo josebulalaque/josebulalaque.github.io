@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2026-02-09
+- Migrated data storage from browser localStorage to a server-side SQLite database.
+- Added Node.js + Express backend (`raffler-backend/`) with 17 REST API endpoints.
+- Database uses better-sqlite3 with WAL journal mode and foreign keys.
+- Winner-picking logic (Fisher-Yates shuffle) now runs server-side with audience filtering and previous-winner exclusion via SQL.
+- Major draw reworked: winners are stored with `is_pending` flag and revealed one at a time via a dedicated `/reveal` endpoint, replacing the client-side `setInterval` approach.
+- Custom images now uploaded to the server filesystem via multer instead of stored as base64 in localStorage, removing the storage quota limitation.
+- Nginx configured as reverse proxy (`/api/*` to Express on port 3000) and serves uploaded images from `/uploads/`.
+- Backend runs as a systemd service (`raffler-api.service`) with auto-restart on failure.
+- Frontend `app.js` rewritten: all `localStorage` calls replaced with `fetch()` to `/api/*` endpoints, mutation functions converted to async, initialization uses `Promise.all` for parallel data loading.
+- Data now persists across browser cache clears and is accessible from any device on the network.
+- Moved `raffler-backend/` inside the main project directory.
+- Backend auto-creates `data/` and `uploads/images/` directories on startup for fresh-clone compatibility.
+- Added `install.sh` — automated setup script that installs Node.js, nginx, npm dependencies, and configures nginx + systemd. Idempotent and path-aware.
+- Added `.gitignore` to exclude `node_modules/`, `raffler-backend/data/`, and `raffler-backend/uploads/images/`.
+- Added `CLAUDE.md` project guide with architecture, schema, API reference, and development notes.
+
 ## 2026-02-04
 - Added custom image upload for Number Generator to replace default food emojis.
 - Users can upload multiple images which are stored in localStorage as base64.
