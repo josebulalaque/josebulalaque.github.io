@@ -491,7 +491,7 @@ h3,
 
 #view-raffles.is-active {
   display: grid;
-  grid-template-columns: minmax(320px, 420px) 1fr;
+  grid-template-columns: 1fr;
   gap: 24px;
 }
 
@@ -1271,10 +1271,6 @@ textarea:focus {
   }
 
   #view-events.is-active {
-    grid-template-columns: 1fr;
-  }
-
-  #view-raffles.is-active {
     grid-template-columns: 1fr;
   }
 

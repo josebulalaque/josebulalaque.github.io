@@ -348,7 +348,7 @@ function renderRaffles() {
       const showButton = document.createElement("button");
       showButton.className = "button ghost raffle-show";
       showButton.textContent = "Show Winners";
-      showButton.addEventListener("click", () => showWinnerModal(raffle.winners || []));
+      showButton.addEventListener("click", () => showWinnerModal(raffle.winners || [], raffle.title));
       titleWrap.appendChild(showButton);
     }
     header.appendChild(titleWrap);
@@ -637,7 +637,7 @@ function makeBadgeClickable(badge, name, raffleNumber) {
   });
 }
 
-function showWinnerModal(winners) {
+function showWinnerModal(winners, title) {
   if (!winnerModal || !winnerNumbers) return;
   winnerNumbers.innerHTML = "";
   if (winners.length === 0) {
@@ -652,7 +652,8 @@ function showWinnerModal(winners) {
       winnerNumbers.appendChild(badge);
     });
   }
-  winnerModal.querySelector(".modal-label").textContent = "Winners";
+  const label = title ? `Winners of ${title}` : "Winners";
+  winnerModal.querySelector(".modal-label").textContent = label;
   winnerModal.classList.add("is-visible");
   winnerModal.setAttribute("aria-hidden", "false");
 }
@@ -910,7 +911,7 @@ async function drawRaffleNow(raffleId) {
     badge.textContent = "#?";
     winnerNumbers.appendChild(badge);
   }
-  winnerModal.querySelector(".modal-label").textContent = "Drawing...";
+  winnerModal.querySelector(".modal-label").textContent = `Drawing ${raffle.title}...`;
   winnerModal.classList.add("is-visible");
   winnerModal.setAttribute("aria-hidden", "false");
 
@@ -973,7 +974,7 @@ async function drawRaffleNow(raffleId) {
 
         // On last badge, finalize
         if (i === badges.length - 1) {
-          winnerModal.querySelector(".modal-label").textContent = "Congratulations!";
+          winnerModal.querySelector(".modal-label").textContent = `Winners of ${raffle.title}`;
           renderRaffles();
           updateEligibleCount();
           renderStats();
