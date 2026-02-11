@@ -28,6 +28,8 @@ const views = Array.from(document.querySelectorAll(".view"));
 const raffleModal = document.getElementById("raffleModal");
 const raffleNumberDisplay = document.getElementById("raffleNumberDisplay");
 const closeRaffleModal = document.getElementById("closeRaffleModal");
+const addParticipantModal = document.getElementById("addParticipantModal");
+const viewParticipantsModal = document.getElementById("viewParticipantsModal");
 const winnerModal = document.getElementById("winnerModal");
 const winnerNumbers = document.getElementById("winnerNumbers");
 const drawOverlay = document.getElementById("drawOverlay");
@@ -171,7 +173,7 @@ function renderList() {
       (familyFilter === "non-family" && !entry.isFamily);
     return matchesName && matchesFamily;
   });
-  const ordered = [...filtered];
+  const ordered = [...filtered].sort((a, b) => a.raffleNumber - b.raffleNumber);
 
   list.innerHTML = "";
 
@@ -190,15 +192,15 @@ function renderList() {
     const info = document.createElement("div");
     info.className = "participant-info";
 
-    const name = document.createElement("div");
-    name.className = "participant-name";
+    const nameRow = document.createElement("div");
+    nameRow.className = "participant-name";
     const number = document.createElement("span");
     number.className = "raffle-number";
     number.textContent = `#${entry.raffleNumber}`;
     const nameText = document.createElement("span");
     nameText.textContent = entry.name;
-    name.appendChild(number);
-    name.appendChild(nameText);
+    nameRow.appendChild(number);
+    nameRow.appendChild(nameText);
 
     const meta = document.createElement("div");
     meta.className = "participant-meta";
@@ -207,17 +209,70 @@ function renderList() {
       ${entry.isFamily ? "<span class=\"tag\">Family</span>" : ""}
     `;
 
-    info.appendChild(name);
+    info.appendChild(nameRow);
     info.appendChild(meta);
 
     const actions = document.createElement("div");
     actions.className = "participant-actions";
+
+    const editButton = document.createElement("button");
+    editButton.className = "icon-button";
+    editButton.textContent = "Edit";
+    editButton.addEventListener("click", () => {
+      // Switch to inline edit mode
+      info.innerHTML = "";
+
+      const editName = document.createElement("input");
+      editName.type = "text";
+      editName.value = entry.name;
+      editName.className = "edit-inline-input";
+
+      const editFamily = document.createElement("label");
+      editFamily.className = "toggle edit-inline-toggle";
+      const editFamilyCb = document.createElement("input");
+      editFamilyCb.type = "checkbox";
+      editFamilyCb.checked = entry.isFamily;
+      const editFamilyLabel = document.createElement("span");
+      editFamilyLabel.textContent = "Family member";
+      editFamily.appendChild(editFamilyCb);
+      editFamily.appendChild(editFamilyLabel);
+
+      info.appendChild(editName);
+      info.appendChild(editFamily);
+
+      // Replace actions with Save / Cancel
+      actions.innerHTML = "";
+
+      const saveButton = document.createElement("button");
+      saveButton.className = "icon-button";
+      saveButton.textContent = "Save";
+      saveButton.addEventListener("click", async () => {
+        const newName = editName.value.trim();
+        if (!newName) return;
+        try {
+          await editParticipant(entry.id, newName, editFamilyCb.checked);
+        } catch (err) {
+          console.error(err);
+        }
+      });
+
+      const cancelButton = document.createElement("button");
+      cancelButton.className = "icon-button";
+      cancelButton.textContent = "Cancel";
+      cancelButton.addEventListener("click", () => renderList());
+
+      actions.appendChild(saveButton);
+      actions.appendChild(cancelButton);
+
+      requestAnimationFrame(() => editName.focus());
+    });
 
     const removeButton = document.createElement("button");
     removeButton.className = "icon-button";
     removeButton.textContent = "Remove";
     removeButton.addEventListener("click", () => removeParticipant(entry.id));
 
+    actions.appendChild(editButton);
     actions.appendChild(removeButton);
 
     item.appendChild(info);
@@ -262,10 +317,29 @@ function renderEvents() {
 
     const actions = document.createElement("div");
     actions.className = "event-actions";
+
+    const leftGroup = document.createElement("div");
+    leftGroup.className = "event-actions-left";
+
+    const addBtn = document.createElement("button");
+    addBtn.className = "icon-button";
+    addBtn.textContent = "Add Participants";
+    addBtn.addEventListener("click", () => showAddParticipantModal());
+
+    const viewBtn = document.createElement("button");
+    viewBtn.className = "icon-button";
+    viewBtn.textContent = "View Participants";
+    viewBtn.addEventListener("click", () => showViewParticipantsModal());
+
+    leftGroup.appendChild(addBtn);
+    leftGroup.appendChild(viewBtn);
+
     const removeButton = document.createElement("button");
     removeButton.className = "icon-button";
     removeButton.textContent = "Remove";
     removeButton.addEventListener("click", () => removeEvent(eventItem.id));
+
+    actions.appendChild(leftGroup);
     actions.appendChild(removeButton);
 
     card.appendChild(title);
@@ -601,7 +675,7 @@ function hideRaffleModal() {
   if (!raffleModal) return;
   raffleModal.classList.remove("is-visible");
   raffleModal.setAttribute("aria-hidden", "true");
-  if (document.getElementById("view-participants")?.classList.contains("is-active") && nameInput) {
+  if (addParticipantModal?.classList.contains("is-visible") && nameInput) {
     requestAnimationFrame(() => nameInput.focus());
   }
 }
@@ -657,6 +731,33 @@ function hideWinnerModal() {
   if (drawOverlay) drawOverlay.innerHTML = "";
 }
 
+/* ===== Participant modals ===== */
+function showAddParticipantModal() {
+  if (!addParticipantModal) return;
+  addParticipantModal.classList.add("is-visible");
+  addParticipantModal.setAttribute("aria-hidden", "false");
+  if (nameInput) requestAnimationFrame(() => nameInput.focus());
+}
+
+function hideAddParticipantModal() {
+  if (!addParticipantModal) return;
+  addParticipantModal.classList.remove("is-visible");
+  addParticipantModal.setAttribute("aria-hidden", "true");
+}
+
+function showViewParticipantsModal() {
+  if (!viewParticipantsModal) return;
+  renderList();
+  viewParticipantsModal.classList.add("is-visible");
+  viewParticipantsModal.setAttribute("aria-hidden", "false");
+}
+
+function hideViewParticipantsModal() {
+  if (!viewParticipantsModal) return;
+  viewParticipantsModal.classList.remove("is-visible");
+  viewParticipantsModal.setAttribute("aria-hidden", "true");
+}
+
 /* ===== Mutation functions (now async) ===== */
 async function addParticipant(name, isFamily) {
   const entry = await api("/participants", {
@@ -669,6 +770,17 @@ async function addParticipant(name, isFamily) {
   renderList();
   updateEligibleCount();
   return entry;
+}
+
+async function editParticipant(id, name, isFamily) {
+  const updated = await api(`/participants/${id}`, {
+    method: "PUT",
+    body: JSON.stringify({ name, isFamily }),
+  });
+  participants = participants.map((p) => (p.id === id ? updated : p));
+  renderStats();
+  renderList();
+  updateEligibleCount();
 }
 
 async function removeParticipant(id) {
@@ -1145,7 +1257,6 @@ function setActiveView(viewId) {
   navItems.forEach((item) => {
     item.classList.toggle("is-active", item.dataset.view === viewId.replace("view-", ""));
   });
-  if (viewId === "view-participants" && nameInput) requestAnimationFrame(() => nameInput.focus());
   if (viewId === "view-events" && eventNameInput) requestAnimationFrame(() => eventNameInput.focus());
   if (viewId === "view-raffles" && raffleCountInput) requestAnimationFrame(() => raffleCountInput.focus());
 }
@@ -1187,6 +1298,18 @@ if (winnerModal) {
   winnerModal.addEventListener("click", () => {
     if (drawInProgress) return; // Don't allow closing during draw animation
     hideWinnerModal();
+  });
+}
+
+if (addParticipantModal) {
+  addParticipantModal.addEventListener("click", (event) => {
+    if (event.target.dataset.close) hideAddParticipantModal();
+  });
+}
+
+if (viewParticipantsModal) {
+  viewParticipantsModal.addEventListener("click", (event) => {
+    if (event.target.dataset.close) hideViewParticipantsModal();
   });
 }
 

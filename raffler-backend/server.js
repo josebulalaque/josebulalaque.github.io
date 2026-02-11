@@ -69,6 +69,21 @@ app.post("/api/participants", (req, res) => {
   });
 });
 
+// PUT /api/participants/:id
+app.put("/api/participants/:id", (req, res) => {
+  const { name, isFamily } = req.body;
+  if (!name || typeof name !== "string" || !name.trim()) {
+    return res.status(400).json({ error: "Name is required" });
+  }
+  const result = db.updateParticipant(req.params.id, { name: name.trim(), isFamily: !!isFamily });
+  if (result.changes === 0) {
+    return res.status(404).json({ error: "Participant not found" });
+  }
+  const participants = db.getAllParticipants();
+  const updated = participants.find((p) => p.id === req.params.id);
+  res.json(updated);
+});
+
 // DELETE /api/participants/:id
 app.delete("/api/participants/:id", (req, res) => {
   const result = db.deleteParticipant(req.params.id);

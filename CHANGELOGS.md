@@ -1,6 +1,18 @@
 # Changelog
+## 2026-02-11 — Participant Management in Event Cards
 
-All notable changes to this project will be documented in this file.
+- Moved participant management from standalone Participants page into modals accessible from event cards.
+- Removed Participants nav item from the sidebar.
+- Each event card now has "Add Participants" and "View Participants" buttons on the left, "Remove" on the right.
+- "Add Participants" opens a modal with the registration form (name, family toggle, seed button).
+- "View Participants" opens a wide modal with the full participant list, search, and family filter.
+- Raffle number confirmation modal now appears above the registration modal (z-index fix).
+- Participant list now sorted ascending by raffle number.
+- Events page switched to single-column stacked layout (form on top, event list below).
+- Added inline edit capability to participant list: click "Edit" to modify name and family status in-place.
+- New backend endpoint: `PUT /api/participants/:id` for updating participant name and family status.
+
+
 
 ## 2026-02-11
 

@@ -82,6 +82,10 @@ const stmtInsertParticipant = db.prepare(
 
 const stmtDeleteParticipant = db.prepare("DELETE FROM participants WHERE id = ?");
 
+const stmtUpdateParticipant = db.prepare(
+  "UPDATE participants SET name = @name, is_family = @isFamily WHERE id = @id"
+);
+
 const stmtClearParticipants = db.prepare("DELETE FROM participants");
 
 const stmtNextRaffleNumber = db.prepare(
@@ -103,6 +107,10 @@ function insertParticipant({ id, name, isFamily, raffleNumber, createdAt }) {
     raffleNumber,
     createdAt,
   });
+}
+
+function updateParticipant(id, { name, isFamily }) {
+  return stmtUpdateParticipant.run({ id, name, isFamily: isFamily ? 1 : 0 });
 }
 
 function deleteParticipant(id) {
@@ -364,6 +372,7 @@ module.exports = {
   db,
   getAllParticipants,
   insertParticipant,
+  updateParticipant,
   deleteParticipant,
   clearParticipants,
   getNextRaffleNumber,

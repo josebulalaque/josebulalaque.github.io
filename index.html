@@ -25,10 +25,6 @@
             <span class="nav-dot"></span>
             Dashboard
           </button>
-          <button class="nav-item" data-view="participants">
-            <span class="nav-dot"></span>
-            Participants
-          </button>
           <button class="nav-item" data-view="events">
             <span class="nav-dot"></span>
             Events
@@ -115,51 +111,6 @@
             <div class="activity-list" id="activityList"></div>
           </div>
         </section>
-        </section>
-
-        <section class="view" id="view-participants">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>New registration</h2>
-              <p>Enter a participant name to register.</p>
-            </div>
-            <form id="participantForm" class="form">
-              <div class="field">
-                <label for="name">Full name *</label>
-                <input id="name" name="name" type="text" placeholder="Jordan Lee" required />
-              </div>
-              <div class="field">
-                <label class="toggle">
-                  <input id="isFamily" name="isFamily" type="checkbox" />
-                  <span>Family member</span>
-                </label>
-              </div>
-              <div class="form-actions">
-                <button type="reset" class="button ghost">Reset</button>
-                <button type="submit" class="button primary">Add participant</button>
-              </div>
-              <div class="form-hint" id="formHint"></div>
-              <div class="form-seed">
-                <button type="button" class="button ghost" id="seedParticipants">
-                  Add 400 dummy participants
-                </button>
-              </div>
-            </form>
-          </div>
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Participant list</h2>
-              <div class="list-controls">
-                <input id="search" type="search" placeholder="Search by name" />
-                <select id="filterFamily">
-                  <option value="all">All participants</option>
-                  <option value="family">Family only</option>
-                  <option value="non-family">Non-family</option>
-                </select>
-              </div>
-            </div>
-            <div class="list" id="participantList"></div>
-          </div>
         </section>
 
         <section class="view" id="view-events">
@@ -393,6 +344,56 @@
           <div class="upload-progress-bar" id="uploadProgressBar"></div>
         </div>
         <div class="upload-percent" id="uploadPercent">0%</div>
+      </div>
+    </div>
+
+    <div class="modal" id="addParticipantModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-card" role="dialog" aria-modal="true">
+        <div class="panel-header">
+          <h2>New registration</h2>
+          <p>Enter a participant name to register.</p>
+        </div>
+        <form id="participantForm" class="form">
+          <div class="field">
+            <label for="name">Full name *</label>
+            <input id="name" name="name" type="text" placeholder="Jordan Lee" required />
+          </div>
+          <div class="field">
+            <label class="toggle">
+              <input id="isFamily" name="isFamily" type="checkbox" />
+              <span>Family member</span>
+            </label>
+          </div>
+          <div class="form-actions">
+            <button type="reset" class="button ghost">Reset</button>
+            <button type="submit" class="button primary">Add participant</button>
+          </div>
+          <div class="form-hint" id="formHint"></div>
+          <div class="form-seed">
+            <button type="button" class="button ghost" id="seedParticipants">
+              Add 400 dummy participants
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal" id="viewParticipantsModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true">
+        <div class="panel-header">
+          <h2>Participant list</h2>
+          <div class="list-controls">
+            <input id="search" type="search" placeholder="Search by name" />
+            <select id="filterFamily">
+              <option value="all">All participants</option>
+              <option value="family">Family only</option>
+              <option value="non-family">Non-family</option>
+            </select>
+          </div>
+        </div>
+        <div class="list" id="participantList"></div>
       </div>
     </div>
 

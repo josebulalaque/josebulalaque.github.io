@@ -477,15 +477,9 @@ h3,
   gap: 24px;
 }
 
-#view-participants.is-active {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 24px;
-}
-
 #view-events.is-active {
   display: grid;
-  grid-template-columns: minmax(320px, 420px) 1fr;
+  grid-template-columns: 1fr;
   gap: 24px;
 }
 
@@ -689,7 +683,14 @@ textarea:focus {
 
 .event-actions {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 10px;
+}
+
+.event-actions-left {
+  display: flex;
+  gap: 8px;
 }
 
 .raffle-card {
@@ -836,6 +837,10 @@ textarea:focus {
   z-index: 10;
 }
 
+#raffleModal {
+  z-index: 15;
+}
+
 .modal.is-visible {
   display: grid;
 }
@@ -860,6 +865,13 @@ textarea:focus {
   gap: 14px;
   min-width: min(380px, 92vw);
   animation: popIn 0.25s ease;
+}
+
+.modal-card-wide {
+  min-width: min(680px, 92vw);
+  max-height: 80vh;
+  overflow-y: auto;
+  text-align: left;
 }
 
 .modal-label {
@@ -1234,6 +1246,16 @@ textarea:focus {
   gap: 10px;
 }
 
+.edit-inline-input {
+  width: 100%;
+  font-size: 15px;
+  padding: 8px 12px;
+}
+
+.edit-inline-toggle {
+  margin-top: 4px;
+}
+
 .icon-button {
   border: 1px solid var(--outline);
   background: transparent;
@@ -1287,14 +1309,6 @@ textarea:focus {
   }
 
   .grid {
-    grid-template-columns: 1fr;
-  }
-
-  #view-participants {
-    grid-template-columns: 1fr;
-  }
-
-  #view-events.is-active {
     grid-template-columns: 1fr;
   }
 
