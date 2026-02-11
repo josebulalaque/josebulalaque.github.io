@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## 2026-02-11
+
+- Removed Number Generator page (nav item, view section, all generator JS/CSS).
+- Raffles page now uses single-column layout — "Create raffle draw" and "Recent draws" stack vertically on all screen sizes.
+- Winner modal title now includes the raffle name (e.g. "Winners of Main Prize Draw") when viewing past winners and during draw animations.
+- "Drawing..." phase shows raffle name; final phase shows "Winners of <name>" instead of generic "Congratulations!".
+- Fixed raffle form Reset button to also clear the hint/error message.
+- Added upload progress modal with animated progress bar and percentage when uploading custom images.
+- Image upload rewritten to use XMLHttpRequest for real-time progress tracking (replacing fetch).
+- Increased nginx `client_max_body_size` from 10MB to 100MB to support bulk image uploads.
+- Increased multer per-file size limit from 5MB to 10MB.
+- Custom images description updated to reference "raffle draw animations" instead of "number generator".
+- FOOD_EMOJIS array retained for raffle draw overlay scatter animation.
+
 ## 2026-02-09 — Animated Raffle Draw
 - Redesigned "Draw Now" to open a fullscreen animated popup instead of silently updating the card.
 - Winner badges appear with randomizing number animations, then stop one by one to reveal actual winners.

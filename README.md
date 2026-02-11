@@ -10,7 +10,7 @@ Raffler is a web app for managing raffle participants, events, and draws. It fea
 - Draw Minor raffles instantly or Major raffles with a suspense reveal (winner-by-winner).
 - Optionally exclude previous winners from future draws with an eligible count indicator.
 - Target raffle draws to everyone, family-only, or non-family participants.
-- Generate random numbers with a fun food-themed reveal animation (randomizing number with dramatic emoji scatter). Optionally upload custom images to replace the default emojis.
+- Upload custom images for raffle draw animations, with a progress bar during upload.
 - Export participant lists as CSV.
 - Switch between multiple UI themes (Default, Light, Dark, Barrio Fiesta variants, and more).
 - Mobile-friendly layout across pages.
@@ -30,8 +30,7 @@ Browser  -->  Nginx (port 80)  -->  Static files (HTML/CSS/JS)
 - **Participants**: add names, search/filter, and view the list.
 - **Events**: create and manage events.
 - **Raffles**: create drafts, draw winners (Minor or Major), and review results (Show Winners popup).
-- **Number Generator**: generate random numbers with a dramatic food reveal animation. Upload custom images to personalize the reveal.
-- **Settings**: choose a theme.
+- **Settings**: choose a theme and upload custom images for draw animations.
 
 ## Tech stack
 

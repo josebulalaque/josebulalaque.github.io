@@ -27,7 +27,7 @@ josebulalaque.github.io/
 ├── install.sh          # Automated setup script (Node.js, nginx, systemd)
 ├── .gitignore          # Excludes node_modules, data, uploaded images
 ├── raffler-backend/
-│   ├── server.js       # Express API (17 endpoints, listens 127.0.0.1:3000)
+│   ├── server.js       # Express API (21 endpoints, listens 127.0.0.1:3000)
 │   ├── database.js     # SQLite schema, prepared statements, helpers
 │   ├── package.json
 │   ├── package-lock.json
@@ -90,7 +90,7 @@ josebulalaque.github.io/
 - **Major draw**: Winners picked server-side but stored with `is_pending=1`. Frontend calls `/reveal` to show winners one at a time. Status transitions: pending → drawing → drawn.
 - **Audience filtering**: Draws can target "everyone", "family", or "non-family".
 - **Previous winner exclusion**: When enabled, participants who won in any completed raffle are excluded from the eligible pool.
-- **Custom images**: Uploaded via multer to `uploads/images/`, served by nginx. Used in Number Generator and raffle draw overlay animations.
+- **Custom images**: Uploaded via multer to `uploads/images/`, served by nginx. Used in raffle draw overlay animations.
 
 ## Service Management
 

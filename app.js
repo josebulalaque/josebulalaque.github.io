@@ -63,14 +63,6 @@ const statPending = document.getElementById("statPending");
 const statLastDraw = document.getElementById("statLastDraw");
 const activityList = document.getElementById("activityList");
 
-// Number Generator elements
-const genMin = document.getElementById("genMin");
-const genMax = document.getElementById("genMax");
-const generateBtn = document.getElementById("generateBtn");
-const generatorNumber = document.getElementById("generatorNumber");
-const foodOverlay = document.getElementById("foodOverlay");
-const generatorHistory = document.getElementById("generatorHistory");
-
 // Image upload elements
 const imageUpload = document.getElementById("imageUpload");
 const clearImagesBtn = document.getElementById("clearImages");
@@ -1049,27 +1041,78 @@ async function exportParticipants() {
 }
 
 /* ===== Image handling (now using server uploads) ===== */
-async function handleImageUpload(event) {
-  const files = event.target.files;
+const uploadModal = document.getElementById("uploadModal");
+const uploadProgressBar = document.getElementById("uploadProgressBar");
+const uploadPercent = document.getElementById("uploadPercent");
+const uploadLabel = document.getElementById("uploadLabel");
+
+function showUploadModal() {
+  if (!uploadModal) return;
+  uploadProgressBar.style.width = "0%";
+  uploadPercent.textContent = "0%";
+  uploadLabel.textContent = "Uploading images...";
+  uploadModal.classList.add("is-visible");
+  uploadModal.setAttribute("aria-hidden", "false");
+}
+
+function hideUploadModal() {
+  if (!uploadModal) return;
+  uploadModal.classList.remove("is-visible");
+  uploadModal.setAttribute("aria-hidden", "true");
+}
+
+function updateUploadProgress(percent) {
+  if (uploadProgressBar) uploadProgressBar.style.width = `${percent}%`;
+  if (uploadPercent) uploadPercent.textContent = `${percent}%`;
+}
+
+function handleImageUpload(event) {
+  const input = event.target;
+  const files = input.files;
   if (!files || files.length === 0) return;
 
   const formData = new FormData();
   Array.from(files).forEach((file) => formData.append("images", file));
 
-  try {
-    const res = await fetch("/api/images", { method: "POST", body: formData });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      throw new Error(body.error || "Upload failed");
-    }
-    const saved = await res.json();
-    customImages = [...customImages, ...saved];
-    renderImagesPreview();
-  } catch (err) {
-    alert(err.message);
-  }
+  showUploadModal();
 
-  event.target.value = "";
+  const xhr = new XMLHttpRequest();
+
+  xhr.upload.addEventListener("progress", (e) => {
+    if (e.lengthComputable) {
+      const percent = Math.round((e.loaded / e.total) * 100);
+      updateUploadProgress(percent);
+    }
+  });
+
+  xhr.addEventListener("load", () => {
+    input.value = "";
+    if (xhr.status >= 200 && xhr.status < 300) {
+      try {
+        const saved = JSON.parse(xhr.responseText);
+        customImages = [...customImages, ...saved];
+        renderImagesPreview();
+        uploadLabel.textContent = "Upload complete!";
+        updateUploadProgress(100);
+      } catch (err) {
+        uploadLabel.textContent = "Upload failed";
+      }
+    } else {
+      let msg = "Upload failed";
+      try { msg = JSON.parse(xhr.responseText).error || msg; } catch (e) {}
+      uploadLabel.textContent = msg;
+    }
+    setTimeout(hideUploadModal, 800);
+  });
+
+  xhr.addEventListener("error", () => {
+    input.value = "";
+    uploadLabel.textContent = "Upload failed";
+    setTimeout(hideUploadModal, 1200);
+  });
+
+  xhr.open("POST", "/api/images");
+  xhr.send(formData);
 }
 
 async function clearCustomImages() {
@@ -1107,165 +1150,13 @@ function setActiveView(viewId) {
   if (viewId === "view-raffles" && raffleCountInput) requestAnimationFrame(() => raffleCountInput.focus());
 }
 
-/* ===== Number Generator (unchanged except image URLs) ===== */
+/* ===== Emoji list (used by draw overlay) ===== */
 const FOOD_EMOJIS = [
   "\u{1F355}", "\u{1F354}", "\u{1F35F}", "\u{1F32D}", "\u{1F37F}", "\u{1F9C0}", "\u{1F953}", "\u{1F357}", "\u{1F356}", "\u{1F969}",
   "\u{1F364}", "\u{1F373}", "\u{1F95A}", "\u{1F95E}", "\u{1F9C7}", "\u{1F950}", "\u{1F35E}", "\u{1F96F}", "\u{1F9C1}", "\u{1F370}",
   "\u{1F369}", "\u{1F36A}", "\u{1F382}", "\u{1F36B}", "\u{1F36C}", "\u{1F36D}", "\u{1F36E}", "\u{1F366}", "\u{1F368}", "\u{1F367}",
   "\u{1F95D}", "\u{1F353}", "\u{1F352}", "\u{1F351}", "\u{1F34A}", "\u{1F34B}", "\u{1F34C}", "\u{1F349}", "\u{1F347}", "\u{1F34E}"
 ];
-
-let generatorHistoryList = [];
-let numberAnimationInterval = null;
-
-function createFoodOverlay() {
-  if (!foodOverlay) return;
-  foodOverlay.innerHTML = "";
-
-  const showImages = modeImagesToggle ? modeImagesToggle.checked : true;
-  const showEmojis = modeEmojisToggle ? modeEmojisToggle.checked : true;
-
-  const useImages = showImages && customImages.length > 0;
-  const useEmojis = showEmojis || (!showImages && customImages.length === 0);
-
-  const cols = 5;
-  const rows = 5;
-  const totalItems = cols * rows;
-  const cellWidth = 80 / cols;
-  const cellHeight = 80 / rows;
-  const jitter = 6;
-
-  const items = [];
-
-  if (useImages) {
-    customImages.forEach((img) => {
-      items.push({ type: "image", src: img.url });
-    });
-  }
-
-  if (useEmojis) {
-    while (items.length < totalItems) {
-      items.push({
-        type: "emoji",
-        content: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)]
-      });
-    }
-  } else if (useImages && items.length < totalItems) {
-    const imageCount = customImages.length;
-    while (items.length < totalItems) {
-      const img = customImages[items.length % imageCount];
-      items.push({ type: "image", src: img.url });
-    }
-  }
-
-  for (let i = items.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [items[i], items[j]] = [items[j], items[i]];
-  }
-
-  let itemIndex = 0;
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
-      const food = document.createElement("span");
-      food.className = "food-item";
-
-      const item = items[itemIndex++];
-      if (item.type === "image") {
-        const imgEl = document.createElement("img");
-        imgEl.src = item.src;
-        imgEl.alt = "Custom image";
-        food.appendChild(imgEl);
-      } else {
-        food.textContent = item.content;
-      }
-
-      const baseX = 10 + col * cellWidth + cellWidth / 2;
-      const baseY = 10 + row * cellHeight + cellHeight / 2;
-      const x = baseX + (Math.random() * jitter * 2 - jitter);
-      const y = baseY + (Math.random() * jitter * 2 - jitter);
-
-      food.style.left = `${x}%`;
-      food.style.top = `${y}%`;
-      food.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg)`;
-
-      foodOverlay.appendChild(food);
-    }
-  }
-}
-
-function scatterFood() {
-  if (!foodOverlay) return;
-  const items = foodOverlay.querySelectorAll(".food-item");
-
-  items.forEach((item, index) => {
-    const angle = Math.random() * 360;
-    const distance = 400 + Math.random() * 300;
-    const tx = Math.cos(angle * Math.PI / 180) * distance;
-    const ty = Math.sin(angle * Math.PI / 180) * distance;
-    const rotation = Math.random() * 720 - 360;
-
-    setTimeout(() => {
-      item.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rotation}deg)`;
-      item.classList.add("is-scattered");
-    }, index * 50);
-  });
-}
-
-function startNumberAnimation(min, max) {
-  if (!generatorNumber) return;
-  if (numberAnimationInterval) clearInterval(numberAnimationInterval);
-  numberAnimationInterval = setInterval(() => {
-    const randomDisplay = Math.floor(Math.random() * (max - min + 1)) + min;
-    generatorNumber.textContent = randomDisplay;
-  }, 50);
-}
-
-function stopNumberAnimation(finalNumber) {
-  if (numberAnimationInterval) {
-    clearInterval(numberAnimationInterval);
-    numberAnimationInterval = null;
-  }
-  if (generatorNumber) generatorNumber.textContent = finalNumber;
-}
-
-function generateNumber() {
-  if (!genMin || !genMax || !generatorNumber) return;
-
-  const min = parseInt(genMin.value) || 1;
-  const max = parseInt(genMax.value) || 100;
-
-  if (min >= max) return;
-
-  const randomNum = Math.floor(Math.random() * (max - min + 1)) + min;
-
-  generatorNumber.classList.remove("is-hidden");
-  startNumberAnimation(min, max);
-  createFoodOverlay();
-
-  setTimeout(() => {
-    scatterFood();
-    setTimeout(() => {
-      stopNumberAnimation(randomNum);
-    }, 1500);
-  }, 600);
-
-  generatorHistoryList.unshift(randomNum);
-  if (generatorHistoryList.length > 10) generatorHistoryList.pop();
-  renderGeneratorHistory();
-}
-
-function renderGeneratorHistory() {
-  if (!generatorHistory) return;
-  if (generatorHistoryList.length === 0) {
-    generatorHistory.innerHTML = '<div class="empty">No numbers generated yet.</div>';
-    return;
-  }
-  generatorHistory.innerHTML = `
-    <div class="history-list">
-      ${generatorHistoryList.map((num) => `<span class="history-item">${num}</span>`).join("")}
-    </div>
-  `;
-}
 
 /* ===== Event listeners ===== */
 navItems.forEach((item) => {
@@ -1319,11 +1210,13 @@ clearAll.addEventListener("click", clearParticipants);
 if (seedParticipantsButton) seedParticipantsButton.addEventListener("click", () => seedParticipants(400));
 if (eventForm) eventForm.addEventListener("submit", handleEventSubmit);
 if (createRaffleDraftButton) createRaffleDraftButton.addEventListener("click", handleRaffleDraft);
-if (raffleForm) raffleForm.addEventListener("reset", () => requestAnimationFrame(updateEligibleCount));
+if (raffleForm) raffleForm.addEventListener("reset", () => {
+  if (raffleHint) raffleHint.textContent = "";
+  requestAnimationFrame(updateEligibleCount);
+});
 if (clearRafflesButton) clearRafflesButton.addEventListener("click", clearRaffles);
 if (raffleExcludeToggle) raffleExcludeToggle.addEventListener("change", updateEligibleCount);
 if (raffleAudienceSelect) raffleAudienceSelect.addEventListener("change", updateEligibleCount);
-if (generateBtn) generateBtn.addEventListener("click", generateNumber);
 if (imageUpload) imageUpload.addEventListener("change", handleImageUpload);
 if (clearImagesBtn) clearImagesBtn.addEventListener("click", clearCustomImages);
 
@@ -1348,7 +1241,6 @@ async function initApp() {
   applyTheme(activeTheme);
   setActiveView("view-dashboard");
   updateEligibleCount();
-  renderGeneratorHistory();
   renderImagesPreview();
 }
 

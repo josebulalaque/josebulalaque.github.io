@@ -37,10 +37,6 @@
             <span class="nav-dot"></span>
             Raffles
           </button>
-          <button class="nav-item" data-view="generator">
-            <span class="nav-dot"></span>
-            Number Generator
-          </button>
           <button class="nav-item" data-view="settings">
             <span class="nav-dot"></span>
             Settings
@@ -277,37 +273,6 @@
           </div>
         </section>
 
-        <section class="view" id="view-generator">
-          <div class="panel generator-panel">
-            <div class="panel-header">
-              <h2>Random Number Generator</h2>
-              <p>Generate a random number with a fun food reveal animation.</p>
-            </div>
-
-            <div class="generator-controls">
-              <div class="field">
-                <label for="genMin">Minimum</label>
-                <input id="genMin" type="number" value="1" min="0" />
-              </div>
-              <div class="field">
-                <label for="genMax">Maximum</label>
-                <input id="genMax" type="number" value="100" min="1" />
-              </div>
-              <button type="button" id="generateBtn" class="button primary">Generate</button>
-            </div>
-
-            <div class="generator-display" id="generatorDisplay">
-              <div class="generator-number" id="generatorNumber">?</div>
-              <div class="food-overlay" id="foodOverlay"></div>
-            </div>
-
-            <div class="generator-history">
-              <h3>Recent numbers</h3>
-              <div id="generatorHistory"></div>
-            </div>
-          </div>
-        </section>
-
         <section class="view" id="view-settings">
           <div class="panel">
             <div class="panel-header">
@@ -370,7 +335,7 @@
           <div class="panel">
             <div class="panel-header">
               <h2>Custom images</h2>
-              <p>Upload images to use in the number generator and other animations. Leave empty to use default emojis.</p>
+              <p>Upload images to use in raffle draw animations. Leave empty to use default emojis.</p>
             </div>
             <div class="generator-images-controls">
               <label class="button ghost upload-btn">
@@ -417,6 +382,17 @@
         <div class="modal-label" id="winnerTitle">Congratulations!</div>
         <div class="modal-number winner-numbers" id="winnerNumbers">#1</div>
         <div class="draw-overlay" id="drawOverlay"></div>
+      </div>
+    </div>
+
+    <div class="modal" id="uploadModal" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <div class="modal-card" role="dialog" aria-modal="true">
+        <div class="modal-label" id="uploadLabel">Uploading images...</div>
+        <div class="upload-progress">
+          <div class="upload-progress-bar" id="uploadProgressBar"></div>
+        </div>
+        <div class="upload-percent" id="uploadPercent">0%</div>
       </div>
     </div>
 
