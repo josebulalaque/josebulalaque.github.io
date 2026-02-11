@@ -1,5 +1,8 @@
 # Changelog
 ## 2026-02-11 — Participant Management in Event Cards
+- Moved event creation form into a "Create Event" modal, triggered by a button on the Events page.
+- Events page now shows only the Upcoming events panel with a "Create Event" button at the top.
+- Modal auto-closes after successful event creation.
 
 - Moved participant management from standalone Participants page into modals accessible from event cards.
 - Removed Participants nav item from the sidebar.

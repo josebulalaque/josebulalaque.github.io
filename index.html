@@ -116,42 +116,11 @@
         <section class="view" id="view-events">
           <div class="panel">
             <div class="panel-header">
-              <h2>Create event</h2>
-              <p>Plan your next raffle event and keep details handy.</p>
-            </div>
-            <form id="eventForm" class="form">
-              <div class="field">
-                <label for="eventName">Event name *</label>
-                <input id="eventName" name="eventName" type="text" placeholder="Spring Showcase" required />
-              </div>
-              <div class="field">
-                <label for="eventDate">Event date *</label>
-                <input id="eventDate" name="eventDate" type="date" required />
-              </div>
-              <div class="field">
-                <label for="eventTime">Event time</label>
-                <input id="eventTime" name="eventTime" type="time" />
-              </div>
-              <div class="field">
-                <label for="eventLocation">Location</label>
-                <input id="eventLocation" name="eventLocation" type="text" placeholder="Main hall" />
-              </div>
-              <div class="field field-wide">
-                <label for="eventNotes">Notes</label>
-                <textarea id="eventNotes" name="eventNotes" rows="3" placeholder="Hosts, prizes, reminders..."></textarea>
-              </div>
-              <div class="form-actions">
-                <button type="reset" class="button ghost">Reset</button>
-                <button type="submit" class="button primary">Add event</button>
-              </div>
-              <div class="form-hint" id="eventHint"></div>
-            </form>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
               <h2>Upcoming events</h2>
               <p>Use this list to track your schedule.</p>
+              <div class="panel-actions">
+                <button type="button" class="button primary" id="createEventBtn">Create Event</button>
+              </div>
             </div>
             <div class="list" id="eventList"></div>
           </div>
@@ -344,6 +313,43 @@
           <div class="upload-progress-bar" id="uploadProgressBar"></div>
         </div>
         <div class="upload-percent" id="uploadPercent">0%</div>
+      </div>
+    </div>
+
+    <div class="modal" id="createEventModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close="true"></div>
+      <div class="modal-card modal-card-wide" role="dialog" aria-modal="true">
+        <div class="panel-header">
+          <h2>Create event</h2>
+          <p>Plan your next raffle event and keep details handy.</p>
+        </div>
+        <form id="eventForm" class="form">
+          <div class="field">
+            <label for="eventName">Event name *</label>
+            <input id="eventName" name="eventName" type="text" placeholder="Spring Showcase" required />
+          </div>
+          <div class="field">
+            <label for="eventDate">Event date *</label>
+            <input id="eventDate" name="eventDate" type="date" required />
+          </div>
+          <div class="field">
+            <label for="eventTime">Event time</label>
+            <input id="eventTime" name="eventTime" type="time" />
+          </div>
+          <div class="field">
+            <label for="eventLocation">Location</label>
+            <input id="eventLocation" name="eventLocation" type="text" placeholder="Main hall" />
+          </div>
+          <div class="field field-wide">
+            <label for="eventNotes">Notes</label>
+            <textarea id="eventNotes" name="eventNotes" rows="3" placeholder="Hosts, prizes, reminders..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="reset" class="button ghost">Reset</button>
+            <button type="submit" class="button primary">Add event</button>
+          </div>
+          <div class="form-hint" id="eventHint"></div>
+        </form>
       </div>
     </div>
 

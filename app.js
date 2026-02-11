@@ -28,6 +28,8 @@ const views = Array.from(document.querySelectorAll(".view"));
 const raffleModal = document.getElementById("raffleModal");
 const raffleNumberDisplay = document.getElementById("raffleNumberDisplay");
 const closeRaffleModal = document.getElementById("closeRaffleModal");
+const createEventModal = document.getElementById("createEventModal");
+const createEventBtn = document.getElementById("createEventBtn");
 const addParticipantModal = document.getElementById("addParticipantModal");
 const viewParticipantsModal = document.getElementById("viewParticipantsModal");
 const winnerModal = document.getElementById("winnerModal");
@@ -731,6 +733,20 @@ function hideWinnerModal() {
   if (drawOverlay) drawOverlay.innerHTML = "";
 }
 
+/* ===== Create Event modal ===== */
+function showCreateEventModal() {
+  if (!createEventModal) return;
+  createEventModal.classList.add("is-visible");
+  createEventModal.setAttribute("aria-hidden", "false");
+  if (eventNameInput) requestAnimationFrame(() => eventNameInput.focus());
+}
+
+function hideCreateEventModal() {
+  if (!createEventModal) return;
+  createEventModal.classList.remove("is-visible");
+  createEventModal.setAttribute("aria-hidden", "true");
+}
+
 /* ===== Participant modals ===== */
 function showAddParticipantModal() {
   if (!addParticipantModal) return;
@@ -875,7 +891,7 @@ async function handleEventSubmit(event) {
   try {
     await addEvent({ name, date, time, location, notes });
     eventForm.reset();
-    showEventHint("Event added.", false);
+    hideCreateEventModal();
   } catch (err) {
     showEventHint(err.message);
   }
@@ -1257,7 +1273,6 @@ function setActiveView(viewId) {
   navItems.forEach((item) => {
     item.classList.toggle("is-active", item.dataset.view === viewId.replace("view-", ""));
   });
-  if (viewId === "view-events" && eventNameInput) requestAnimationFrame(() => eventNameInput.focus());
   if (viewId === "view-raffles" && raffleCountInput) requestAnimationFrame(() => raffleCountInput.focus());
 }
 
@@ -1299,6 +1314,16 @@ if (winnerModal) {
     if (drawInProgress) return; // Don't allow closing during draw animation
     hideWinnerModal();
   });
+}
+
+if (createEventModal) {
+  createEventModal.addEventListener("click", (event) => {
+    if (event.target.dataset.close) hideCreateEventModal();
+  });
+}
+
+if (createEventBtn) {
+  createEventBtn.addEventListener("click", () => showCreateEventModal());
 }
 
 if (addParticipantModal) {
