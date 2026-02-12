@@ -1148,15 +1148,15 @@ async function drawRaffleNow(raffleId) {
       return true;
     });
     if (eligible.length === 0) {
-      showRaffleHint("No participants in this event. Add participants first.");
+      alert("No participants in this event. Add participants first.");
       return;
     }
     if (eligible.length < count) {
-      showRaffleHint(`Not enough eligible participants (${eligible.length} available, ${count} needed).`);
+      alert(`Not enough eligible participants (${eligible.length} available, ${count} needed).`);
       return;
     }
   } catch (err) {
-    showRaffleHint(err.message);
+    alert(err.message);
     return;
   }
 
