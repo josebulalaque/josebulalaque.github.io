@@ -1125,10 +1125,42 @@ function scatterDrawOverlay() {
 /* ===== Animated raffle draw ===== */
 async function drawRaffleNow(raffleId) {
   if (drawInProgress) return;
-  drawInProgress = true;
 
   const raffle = raffles.find((r) => r.id === raffleId);
   const count = raffle ? raffle.count : 1;
+
+  // Pre-check: ensure enough eligible participants before starting animation
+  try {
+    let pool;
+    if (raffle.eventId) {
+      const data = await api(`/events/${raffle.eventId}/participants`);
+      pool = data.participants;
+    } else {
+      pool = participants;
+    }
+    const exclude = raffle.excludePreviousWinners;
+    const audience = raffle.raffleAudience || "everyone";
+    const previousWinnerIds = exclude ? getPreviousWinnerIds() : new Set();
+    const eligible = pool.filter((p) => {
+      if (audience === "family" && !p.isFamily) return false;
+      if (audience === "non-family" && p.isFamily) return false;
+      if (exclude && previousWinnerIds.has(p.id)) return false;
+      return true;
+    });
+    if (eligible.length === 0) {
+      showRaffleHint("No participants in this event. Add participants first.");
+      return;
+    }
+    if (eligible.length < count) {
+      showRaffleHint(`Not enough eligible participants (${eligible.length} available, ${count} needed).`);
+      return;
+    }
+  } catch (err) {
+    showRaffleHint(err.message);
+    return;
+  }
+
+  drawInProgress = true;
   const maxNum = (raffleCounter - 1) || 100;
 
   // Open the winner modal immediately with animating placeholder badges
