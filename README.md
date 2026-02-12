@@ -7,7 +7,7 @@ Raffler is a web app for managing raffle participants, events, and draws. It fea
 - Register participants with an auto-incrementing raffle number.
 - Manage events and keep notes for upcoming sessions.
 - Create raffle drafts, then draw winners later.
-- Draw Minor raffles instantly or Major raffles with a suspense reveal (winner-by-winner).
+- Draw Minor or Major raffles with an animated suspense reveal (scatter overlay + staggered winner badges).
 - Optionally exclude previous winners from future draws with an eligible count indicator.
 - Target raffle draws to everyone, family-only, or non-family participants.
 - Upload custom images for raffle draw animations, with a progress bar during upload.
@@ -29,7 +29,7 @@ Browser  -->  Nginx (port 80)  -->  Static files (HTML/CSS/JS)
 - **Dashboard**: live stats and recent activity.
 - **Participants**: add names, search/filter, and view the list.
 - **Events**: create and manage events.
-- **Raffles**: create drafts, draw winners (Minor or Major), and review results (Show Winners popup).
+- **Raffles**: create drafts, draw winners with animated reveal, and review results (Show Winners popup).
 - **Settings**: choose a theme and upload custom images for draw animations.
 
 ## Tech stack

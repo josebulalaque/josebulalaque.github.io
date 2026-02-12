@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-02-12
 
+- Unified Minor and Major raffle draws into a single API call flow — both return all winners immediately in one response, with the client-side animation handling the suspense reveal.
+- Removed the sequential `/reveal` API calls for Major draws, improving draw speed and reliability.
+- Draw overlay images are now pre-built in the DOM at page load, so they render instantly when a draw starts (no loading delay).
+- Badge randomization animation hidden until the overlay is in place, preventing numbers from flashing before the draw animation begins.
+- Randomization animation uses a minimum range of 1–100 to avoid leaking real participant numbers during the shuffle effect.
+- "Draw Now" button now checks participant eligibility before starting the animation — shows a styled modal if no participants or not enough eligible participants.
 - Added "Remove All" button to the View Participants modal to clear all participants from an event at once (with confirmation prompt).
 - Added `DELETE /api/events/:eventId/participants` backend endpoint to support bulk participant removal per event.
 - Replaced automatic image thumbnail rendering on Settings page with a "View uploaded images" toggle button for faster page loads.

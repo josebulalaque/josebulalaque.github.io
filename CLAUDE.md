@@ -27,7 +27,7 @@ josebulalaque.github.io/
 ├── install.sh          # Automated setup script (Node.js, nginx, systemd)
 ├── .gitignore          # Excludes node_modules, data, uploaded images
 ├── raffler-backend/
-│   ├── server.js       # Express API (21 endpoints, listens 127.0.0.1:3000)
+│   ├── server.js       # Express API (20 endpoints, listens 127.0.0.1:3000)
 │   ├── database.js     # SQLite schema, prepared statements, helpers
 │   ├── package.json
 │   ├── package-lock.json
@@ -73,8 +73,7 @@ josebulalaque.github.io/
 | DELETE | /api/events/:id | Remove an event |
 | GET | /api/raffles | List all raffles with winners |
 | POST | /api/raffles | Create a raffle draft (pending) |
-| PUT | /api/raffles/:id/draw | Draw winners (Minor=instant, Major=pending reveal) |
-| PUT | /api/raffles/:id/reveal | Reveal next winner in a Major draw |
+| PUT | /api/raffles/:id/draw | Draw winners (all types return winners immediately) |
 | DELETE | /api/raffles | Clear all raffles |
 | GET | /api/stats | Dashboard statistics |
 | GET | /api/images | List uploaded images |
@@ -86,8 +85,7 @@ josebulalaque.github.io/
 
 ## Key Concepts
 
-- **Minor draw**: Winners picked and revealed instantly via Fisher-Yates shuffle.
-- **Major draw**: Winners picked server-side but stored with `is_pending=1`. Frontend calls `/reveal` to show winners one at a time. Status transitions: pending → drawing → drawn.
+- **Draw flow**: Both Minor and Major draws use the same single API call. Winners are picked server-side via Fisher-Yates shuffle and returned immediately. The client-side animation handles the suspense reveal (staggered badge reveals with scatter overlay). Status transitions: pending → drawn.
 - **Audience filtering**: Draws can target "everyone", "family", or "non-family".
 - **Previous winner exclusion**: When enabled, participants who won in any completed raffle are excluded from the eligible pool.
 - **Custom images**: Uploaded via multer to `uploads/images/`, served by nginx. Used in raffle draw overlay animations.
