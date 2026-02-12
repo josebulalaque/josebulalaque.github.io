@@ -31,6 +31,10 @@ const createEventBtn = document.getElementById("createEventBtn");
 const addParticipantModal = document.getElementById("addParticipantModal");
 const viewParticipantsModal = document.getElementById("viewParticipantsModal");
 const removeAllParticipantsBtn = document.getElementById("removeAllParticipants");
+const alertModal = document.getElementById("alertModal");
+const alertTitle = document.getElementById("alertTitle");
+const alertMessage = document.getElementById("alertMessage");
+const closeAlertModalBtn = document.getElementById("closeAlertModal");
 const winnerModal = document.getElementById("winnerModal");
 const winnerNumbers = document.getElementById("winnerNumbers");
 const drawOverlay = document.getElementById("drawOverlay");
@@ -789,6 +793,21 @@ function hideWinnerModal() {
   if (drawOverlay) drawOverlay.innerHTML = "";
 }
 
+/* ===== Alert modal ===== */
+function showAlertModal(message, title = "Notice") {
+  if (!alertModal) return;
+  if (alertTitle) alertTitle.textContent = title;
+  if (alertMessage) alertMessage.textContent = message;
+  alertModal.classList.add("is-visible");
+  alertModal.setAttribute("aria-hidden", "false");
+}
+
+function hideAlertModal() {
+  if (!alertModal) return;
+  alertModal.classList.remove("is-visible");
+  alertModal.setAttribute("aria-hidden", "true");
+}
+
 /* ===== Create Event modal ===== */
 function showCreateEventModal() {
   if (!createEventModal) return;
@@ -1148,15 +1167,15 @@ async function drawRaffleNow(raffleId) {
       return true;
     });
     if (eligible.length === 0) {
-      alert("No participants in this event. Add participants first.");
+      showAlertModal("No participants in this event. Add participants first.");
       return;
     }
     if (eligible.length < count) {
-      alert(`Not enough eligible participants (${eligible.length} available, ${count} needed).`);
+      showAlertModal(`Not enough eligible participants (${eligible.length} available, ${count} needed).`);
       return;
     }
   } catch (err) {
-    alert(err.message);
+    showAlertModal(err.message);
     return;
   }
 
@@ -1472,6 +1491,13 @@ if (raffleModal) {
   });
 }
 
+if (alertModal) {
+  alertModal.addEventListener("click", (event) => {
+    if (event.target.dataset.close) hideAlertModal();
+  });
+}
+if (closeAlertModalBtn) closeAlertModalBtn.addEventListener("click", hideAlertModal);
+
 if (winnerModal) {
   winnerModal.addEventListener("click", () => {
     if (drawInProgress) return; // Don't allow closing during draw animation
@@ -1516,6 +1542,10 @@ document.addEventListener("keydown", (event) => {
     }
   }
   if (event.key === "Escape") {
+    if (alertModal?.classList.contains("is-visible")) {
+      hideAlertModal();
+      return;
+    }
     if (raffleModal?.classList.contains("is-visible")) {
       hideRaffleModal();
       return;
