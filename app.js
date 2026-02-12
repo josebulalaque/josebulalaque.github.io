@@ -1175,7 +1175,7 @@ function scatterDrawOverlay() {
     setTimeout(() => {
       item.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rotation}deg)`;
       item.classList.add("is-scattered");
-    }, index * 40);
+    }, index * 80);
   });
 }
 
