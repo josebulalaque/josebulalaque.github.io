@@ -1266,7 +1266,7 @@ async function drawRaffleNow(raffleId) {
     setTimeout(() => scatterDrawOverlay(), scatterDelay);
 
     // Staggered reveal left to right
-    const minDelay = Math.max(1500 - elapsed, 200);
+    const minDelay = Math.max(3000 - elapsed, 200);
     let delay = minDelay;
 
     badges.forEach((badge, i) => {
