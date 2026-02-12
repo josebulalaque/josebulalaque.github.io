@@ -1,21 +1,24 @@
 # Changelog
-## 2026-02-11 — Participant Management in Event Cards
-- Moved event creation form into a "Create Event" modal, triggered by a button on the Events page.
-- Events page now shows only the Upcoming events panel with a "Create Event" button at the top.
-- Modal auto-closes after successful event creation.
 
-- Moved participant management from standalone Participants page into modals accessible from event cards.
-- Removed Participants nav item from the sidebar.
-- Each event card now has "Add Participants" and "View Participants" buttons on the left, "Remove" on the right.
-- "Add Participants" opens a modal with the registration form (name, family toggle, seed button).
-- "View Participants" opens a wide modal with the full participant list, search, and family filter.
-- Raffle number confirmation modal now appears above the registration modal (z-index fix).
-- Participant list now sorted ascending by raffle number.
-- Events page switched to single-column stacked layout (form on top, event list below).
-- Added inline edit capability to participant list: click "Edit" to modify name and family status in-place.
-- New backend endpoint: `PUT /api/participants/:id` for updating participant name and family status.
+All notable changes to this project will be documented in this file.
 
+## 2026-02-12
 
+- Every event now has its own set of participants — adding, viewing, editing, seeding, and removing participants is scoped per event.
+- Raffle numbers start from 1 within each event independently.
+- Raffle draws tied to an event only pull from that event's eligible participants.
+- Added per-event API endpoints: `GET/POST /api/events/:eventId/participants`, `POST /api/events/:eventId/participants/seed`.
+- Deleting an event now cascade-deletes all its participants.
+- Eligible participant count in the raffle form updates dynamically when the event dropdown changes.
+- Modal titles now show the event name (e.g. "New registration — Spring Showcase", "Participants — Spring Showcase").
+- Added Escape key support to close all modals (add participant, view participants, create event, raffle confirmation, winner display).
+- Moved event creation form into a modal triggered by a "Create Event" button, replacing the inline panel.
+- Moved participant management from a standalone page into modals accessible from each event card ("Add Participants" / "View Participants" buttons).
+- Added inline edit capability for participant entries in the view list (Edit/Save/Cancel).
+- Participant list now sorts in ascending order by raffle number.
+- Fixed raffle number confirmation popup appearing behind the registration modal (z-index).
+- Removed standalone Participants nav item and page.
+- Removed Export CSV and Clear All buttons from the dashboard.
 
 ## 2026-02-11
 
