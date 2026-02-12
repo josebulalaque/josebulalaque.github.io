@@ -298,15 +298,7 @@ app.put("/api/raffles/:id/draw", (req, res) => {
   // Delete any existing winners (in case of re-draw from "drawing" state)
   db.stmtDeleteWinnersForRaffle.run(raffle.id);
 
-  if (raffle.raffleType === "Major") {
-    // Major draw: winners start as pending (to be revealed one by one)
-    db.insertWinners(raffle.id, winners, true);
-    db.updateRaffleStatus(raffle.id, "drawing", null);
-    const updated = db.getAllRaffles().find((r) => r.id === raffle.id);
-    return res.json(updated);
-  }
-
-  // Minor draw: all winners revealed immediately
+  // All draws: winners revealed immediately, animation handled client-side
   db.insertWinners(raffle.id, winners, false);
   const drawnAt = new Date().toISOString();
   db.updateRaffleStatus(raffle.id, "drawn", drawnAt);
