@@ -117,10 +117,6 @@ async function loadTheme() {
 
 async function loadCustomImages() {
   customImages = await api("/images");
-  customImages.forEach((img) => {
-    const preload = new Image();
-    preload.src = img.url;
-  });
 }
 
 async function loadDisplayModes() {
@@ -137,6 +133,7 @@ async function saveDisplayModes() {
       modeEmojis: modeEmojisToggle ? modeEmojisToggle.checked : true,
     }),
   });
+  prebuildDrawOverlay();
 }
 
 /* ===== Formatting helpers (unchanged) ===== */
@@ -1051,7 +1048,15 @@ async function handleRaffleDraft() {
 }
 
 /* ===== Draw overlay (emoji/image scatter in winner modal) ===== */
-function createDrawOverlay() {
+const OVERLAY_COLS = 6;
+const OVERLAY_ROWS = 5;
+const OVERLAY_TOTAL = OVERLAY_COLS * OVERLAY_ROWS;
+const OVERLAY_CELL_W = 80 / OVERLAY_COLS;
+const OVERLAY_CELL_H = 80 / OVERLAY_ROWS;
+const OVERLAY_JITTER = 6;
+
+// Pre-build overlay items into the DOM so images are already loaded
+function prebuildDrawOverlay() {
   if (!drawOverlay) return;
   drawOverlay.innerHTML = "";
 
@@ -1060,13 +1065,6 @@ function createDrawOverlay() {
 
   const useImages = showImages && customImages.length > 0;
   const useEmojis = showEmojis || (!showImages && customImages.length === 0);
-
-  const cols = 6;
-  const rows = 5;
-  const totalItems = cols * rows;
-  const cellWidth = 80 / cols;
-  const cellHeight = 80 / rows;
-  const jitter = 6;
 
   const items = [];
 
@@ -1077,15 +1075,15 @@ function createDrawOverlay() {
   }
 
   if (useEmojis) {
-    while (items.length < totalItems) {
+    while (items.length < OVERLAY_TOTAL) {
       items.push({
         type: "emoji",
         content: FOOD_EMOJIS[Math.floor(Math.random() * FOOD_EMOJIS.length)]
       });
     }
-  } else if (useImages && items.length < totalItems) {
+  } else if (useImages && items.length < OVERLAY_TOTAL) {
     const imageCount = customImages.length;
-    while (items.length < totalItems) {
+    while (items.length < OVERLAY_TOTAL) {
       const img = customImages[items.length % imageCount];
       items.push({ type: "image", src: img.url });
     }
@@ -1098,8 +1096,8 @@ function createDrawOverlay() {
   }
 
   let itemIndex = 0;
-  for (let row = 0; row < rows; row++) {
-    for (let col = 0; col < cols; col++) {
+  for (let row = 0; row < OVERLAY_ROWS; row++) {
+    for (let col = 0; col < OVERLAY_COLS; col++) {
       const food = document.createElement("span");
       food.className = "food-item";
 
@@ -1113,16 +1111,41 @@ function createDrawOverlay() {
         food.textContent = item.content;
       }
 
-      const baseX = 10 + col * cellWidth + cellWidth / 2;
-      const baseY = 10 + row * cellHeight + cellHeight / 2;
-      const x = baseX + (Math.random() * jitter * 2 - jitter);
-      const y = baseY + (Math.random() * jitter * 2 - jitter);
+      // Hide off-screen until draw starts
+      food.style.left = "-200%";
+      food.style.top = "-200%";
+      food.style.opacity = "0";
+
+      drawOverlay.appendChild(food);
+    }
+  }
+}
+
+// Reset pre-built overlay items to visible grid positions for a new draw
+function createDrawOverlay() {
+  if (!drawOverlay) return;
+  const foodItems = drawOverlay.querySelectorAll(".food-item");
+  if (foodItems.length === 0) {
+    prebuildDrawOverlay();
+    return createDrawOverlay();
+  }
+
+  let idx = 0;
+  for (let row = 0; row < OVERLAY_ROWS; row++) {
+    for (let col = 0; col < OVERLAY_COLS; col++) {
+      const food = foodItems[idx++];
+      if (!food) break;
+      food.classList.remove("is-scattered");
+
+      const baseX = 10 + col * OVERLAY_CELL_W + OVERLAY_CELL_W / 2;
+      const baseY = 10 + row * OVERLAY_CELL_H + OVERLAY_CELL_H / 2;
+      const x = baseX + (Math.random() * OVERLAY_JITTER * 2 - OVERLAY_JITTER);
+      const y = baseY + (Math.random() * OVERLAY_JITTER * 2 - OVERLAY_JITTER);
 
       food.style.left = `${x}%`;
       food.style.top = `${y}%`;
+      food.style.opacity = "";
       food.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 40 - 20}deg)`;
-
-      drawOverlay.appendChild(food);
     }
   }
 }
@@ -1388,9 +1411,9 @@ function handleImageUpload(event) {
     if (xhr.status >= 200 && xhr.status < 300) {
       try {
         const saved = JSON.parse(xhr.responseText);
-        saved.forEach((img) => { const p = new Image(); p.src = img.url; });
         customImages = [...customImages, ...saved];
         renderImagesPreview();
+        prebuildDrawOverlay();
         uploadLabel.textContent = "Upload complete!";
         updateUploadProgress(100);
       } catch (err) {
@@ -1419,6 +1442,7 @@ async function clearCustomImages() {
   await api("/images", { method: "DELETE" });
   customImages = [];
   renderImagesPreview();
+  prebuildDrawOverlay();
 }
 
 function renderImagesPreview() {
@@ -1621,6 +1645,7 @@ async function initApp() {
   renderEvents();
   renderRaffles();
   renderImagesPreview();
+  prebuildDrawOverlay();
   applyTheme(activeTheme);
   setActiveView("view-dashboard");
   updateEligibleCount();
