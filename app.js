@@ -1149,6 +1149,7 @@ async function drawRaffleNow(raffleId) {
   const count = raffle ? raffle.count : 1;
 
   // Pre-check: ensure enough eligible participants before starting animation
+  let eligible;
   try {
     let pool;
     if (raffle.eventId) {
@@ -1160,7 +1161,7 @@ async function drawRaffleNow(raffleId) {
     const exclude = raffle.excludePreviousWinners;
     const audience = raffle.raffleAudience || "everyone";
     const previousWinnerIds = exclude ? getPreviousWinnerIds() : new Set();
-    const eligible = pool.filter((p) => {
+    eligible = pool.filter((p) => {
       if (audience === "family" && !p.isFamily) return false;
       if (audience === "non-family" && p.isFamily) return false;
       if (exclude && previousWinnerIds.has(p.id)) return false;
@@ -1180,7 +1181,8 @@ async function drawRaffleNow(raffleId) {
   }
 
   drawInProgress = true;
-  const maxNum = (raffleCounter - 1) || 100;
+  const raffleNumbers = eligible.map((p) => p.raffleNumber);
+  const maxNum = Math.max(...raffleNumbers);
 
   // Open the winner modal immediately with animating placeholder badges
   winnerNumbers.innerHTML = "";
