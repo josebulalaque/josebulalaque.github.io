@@ -30,6 +30,7 @@ const createEventModal = document.getElementById("createEventModal");
 const createEventBtn = document.getElementById("createEventBtn");
 const addParticipantModal = document.getElementById("addParticipantModal");
 const viewParticipantsModal = document.getElementById("viewParticipantsModal");
+const removeAllParticipantsBtn = document.getElementById("removeAllParticipants");
 const winnerModal = document.getElementById("winnerModal");
 const winnerNumbers = document.getElementById("winnerNumbers");
 const drawOverlay = document.getElementById("drawOverlay");
@@ -897,6 +898,19 @@ async function removeParticipant(id) {
   updateEligibleCount();
 }
 
+async function removeAllParticipants() {
+  if (!currentEventId) return;
+  const list = eventParticipants;
+  if (list.length === 0) return;
+  if (!confirm(`Remove all ${list.length} participant${list.length === 1 ? "" : "s"} from this event?`)) return;
+  await api(`/events/${currentEventId}/participants`, { method: "DELETE" });
+  eventParticipants = [];
+  eventRaffleCounter = 1;
+  renderStats();
+  renderList();
+  updateEligibleCount();
+}
+
 async function addEvent(eventItem) {
   const created = await api("/events", {
     method: "POST",
@@ -1454,6 +1468,8 @@ if (viewParticipantsModal) {
     if (event.target.dataset.close) hideViewParticipantsModal();
   });
 }
+
+if (removeAllParticipantsBtn) removeAllParticipantsBtn.addEventListener("click", removeAllParticipants);
 
 if (closeRaffleModal) {
   closeRaffleModal.addEventListener("click", hideRaffleModal);

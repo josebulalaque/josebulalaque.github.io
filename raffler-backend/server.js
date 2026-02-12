@@ -206,6 +206,12 @@ app.post("/api/events/:eventId/participants", (req, res) => {
   });
 });
 
+// DELETE /api/events/:eventId/participants
+app.delete("/api/events/:eventId/participants", (req, res) => {
+  db.deleteParticipantsByEvent(req.params.eventId);
+  res.json({ ok: true });
+});
+
 // POST /api/events/:eventId/participants/seed
 app.post("/api/events/:eventId/participants/seed", (req, res) => {
   const eventId = req.params.eventId;
@@ -437,6 +443,28 @@ app.put("/api/theme", (req, res) => {
   }
   db.setSetting("theme", theme);
   res.json({ theme });
+});
+
+// GET /api/display-modes
+app.get("/api/display-modes", (_req, res) => {
+  const modeImages = db.getSetting("modeImages") !== "false";
+  const modeEmojis = db.getSetting("modeEmojis") !== "false";
+  res.json({ modeImages, modeEmojis });
+});
+
+// PUT /api/display-modes
+app.put("/api/display-modes", (req, res) => {
+  const { modeImages, modeEmojis } = req.body;
+  if (typeof modeImages !== "undefined") {
+    db.setSetting("modeImages", String(modeImages));
+  }
+  if (typeof modeEmojis !== "undefined") {
+    db.setSetting("modeEmojis", String(modeEmojis));
+  }
+  res.json({
+    modeImages: db.getSetting("modeImages") !== "false",
+    modeEmojis: db.getSetting("modeEmojis") !== "false",
+  });
 });
 
 // ===================== Error handler =====================

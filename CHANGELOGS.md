@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-02-12
 
+- Added "Remove All" button to the View Participants modal to clear all participants from an event at once (with confirmation prompt).
+- Added `DELETE /api/events/:eventId/participants` backend endpoint to support bulk participant removal per event.
 - Replaced automatic image thumbnail rendering on Settings page with a "View uploaded images" toggle button for faster page loads.
 - Thumbnails are now loaded on demand — click the button to show/hide previews.
 - Button displays the current image count (e.g. "View uploaded images (12)") and hides when no images are uploaded.
