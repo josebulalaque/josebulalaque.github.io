@@ -1213,26 +1213,18 @@ async function drawRaffleNow(raffleId) {
     // Fire API call (runs during animation)
     const updated = await api(`/raffles/${raffleId}/draw`, { method: "PUT" });
 
-    // Collect final winners
-    let finalWinners;
-    if (updated.status === "drawing") {
-      // Major draw — reveal all pending winners via API
-      finalWinners = [];
-      const pendingCount = (updated.winners || []).filter((w) => w.isPending).length;
-      let latestRaffle = updated;
-      for (let i = 0; i < pendingCount; i++) {
-        const result = await api(`/raffles/${raffleId}/reveal`, { method: "PUT" });
-        finalWinners.push(result.revealed);
-        if (result.remaining === 0) {
-          latestRaffle = result.raffle;
-        }
+    // Collect final winners — reveal one by one via API
+    const finalWinners = [];
+    const pendingCount = (updated.winners || []).filter((w) => w.isPending).length;
+    let latestRaffle = updated;
+    for (let i = 0; i < pendingCount; i++) {
+      const result = await api(`/raffles/${raffleId}/reveal`, { method: "PUT" });
+      finalWinners.push(result.revealed);
+      if (result.remaining === 0) {
+        latestRaffle = result.raffle;
       }
-      raffles = raffles.map((r) => (r.id === raffleId ? latestRaffle : r));
-    } else {
-      // Minor draw — winners already in response
-      finalWinners = updated.winners || [];
-      raffles = raffles.map((r) => (r.id === raffleId ? updated : r));
     }
+    raffles = raffles.map((r) => (r.id === raffleId ? latestRaffle : r));
 
     // Scatter the overlay away before revealing badges
     const elapsed = Date.now() - modalOpenedAt;
