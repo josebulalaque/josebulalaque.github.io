@@ -1185,12 +1185,13 @@ async function drawRaffleNow(raffleId) {
   const maxNum = Math.max(...raffleNumbers);
   const animMax = Math.max(maxNum, 100);
 
-  // Open the winner modal immediately with animating placeholder badges
+  // Open the winner modal with overlay first, badges hidden
   winnerNumbers.innerHTML = "";
+  winnerNumbers.style.visibility = "hidden";
   for (let i = 0; i < count; i++) {
     const badge = document.createElement("div");
     badge.className = "winner-badge is-animating";
-    badge.textContent = "#?";
+    badge.textContent = "\u00A0";
     winnerNumbers.appendChild(badge);
   }
   winnerModal.querySelector(".modal-label").textContent = `Drawing ${raffle.title}...`;
@@ -1200,13 +1201,16 @@ async function drawRaffleNow(raffleId) {
   // Fill modal with emoji/image overlay
   createDrawOverlay();
 
-  // Start randomizing each badge
+  // Start randomizing each badge after overlay is in place
   const badges = [...winnerNumbers.querySelectorAll(".winner-badge")];
-  const intervals = badges.map((badge) =>
-    setInterval(() => {
+  const intervals = [];
+  await new Promise((r) => setTimeout(r, 300));
+  winnerNumbers.style.visibility = "";
+  badges.forEach((badge) => {
+    intervals.push(setInterval(() => {
       badge.textContent = "#" + (Math.floor(Math.random() * animMax) + 1);
-    }, 50)
-  );
+    }, 50));
+  });
 
   const modalOpenedAt = Date.now();
 
