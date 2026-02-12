@@ -70,17 +70,30 @@ db.exec(`
   );
 `);
 
+// --- Migration: add event_id column ---
+try {
+  db.exec("ALTER TABLE participants ADD COLUMN event_id TEXT");
+} catch (e) {
+  // Column already exists
+}
+
 // --- Participants ---
 
 const stmtAllParticipants = db.prepare(
-  "SELECT id, name, is_family AS isFamily, raffle_number AS raffleNumber, created_at AS createdAt FROM participants ORDER BY created_at DESC"
+  "SELECT id, name, is_family AS isFamily, raffle_number AS raffleNumber, event_id AS eventId, created_at AS createdAt FROM participants ORDER BY created_at DESC"
+);
+
+const stmtParticipantsByEvent = db.prepare(
+  "SELECT id, name, is_family AS isFamily, raffle_number AS raffleNumber, event_id AS eventId, created_at AS createdAt FROM participants WHERE event_id = ? ORDER BY created_at DESC"
 );
 
 const stmtInsertParticipant = db.prepare(
-  "INSERT INTO participants (id, name, is_family, raffle_number, created_at) VALUES (@id, @name, @isFamily, @raffleNumber, @createdAt)"
+  "INSERT INTO participants (id, name, is_family, raffle_number, event_id, created_at) VALUES (@id, @name, @isFamily, @raffleNumber, @eventId, @createdAt)"
 );
 
 const stmtDeleteParticipant = db.prepare("DELETE FROM participants WHERE id = ?");
+
+const stmtDeleteParticipantsByEvent = db.prepare("DELETE FROM participants WHERE event_id = ?");
 
 const stmtUpdateParticipant = db.prepare(
   "UPDATE participants SET name = @name, is_family = @isFamily WHERE id = @id"
@@ -88,8 +101,12 @@ const stmtUpdateParticipant = db.prepare(
 
 const stmtClearParticipants = db.prepare("DELETE FROM participants");
 
-const stmtNextRaffleNumber = db.prepare(
+const stmtNextRaffleNumberGlobal = db.prepare(
   "SELECT COALESCE(MAX(raffle_number), 0) + 1 AS next FROM participants"
+);
+
+const stmtNextRaffleNumberForEvent = db.prepare(
+  "SELECT COALESCE(MAX(raffle_number), 0) + 1 AS next FROM participants WHERE event_id = ?"
 );
 
 function getAllParticipants() {
@@ -99,12 +116,20 @@ function getAllParticipants() {
   }));
 }
 
-function insertParticipant({ id, name, isFamily, raffleNumber, createdAt }) {
+function getParticipantsByEvent(eventId) {
+  return stmtParticipantsByEvent.all(eventId).map((row) => ({
+    ...row,
+    isFamily: !!row.isFamily,
+  }));
+}
+
+function insertParticipant({ id, name, isFamily, raffleNumber, eventId, createdAt }) {
   stmtInsertParticipant.run({
     id,
     name,
     isFamily: isFamily ? 1 : 0,
     raffleNumber,
+    eventId: eventId || null,
     createdAt,
   });
 }
@@ -117,12 +142,19 @@ function deleteParticipant(id) {
   return stmtDeleteParticipant.run(id);
 }
 
+function deleteParticipantsByEvent(eventId) {
+  return stmtDeleteParticipantsByEvent.run(eventId);
+}
+
 function clearParticipants() {
   return stmtClearParticipants.run();
 }
 
-function getNextRaffleNumber() {
-  return stmtNextRaffleNumber.get().next;
+function getNextRaffleNumber(eventId) {
+  if (eventId) {
+    return stmtNextRaffleNumberForEvent.get(eventId).next;
+  }
+  return stmtNextRaffleNumberGlobal.get().next;
 }
 
 const insertManyParticipants = db.transaction((list) => {
@@ -260,8 +292,8 @@ function getPreviousWinnerIds() {
   return new Set(stmtAllPreviousWinnerIds.all().map((r) => r.participant_id));
 }
 
-function getEligiblePool({ excludePreviousWinners, audience }) {
-  const all = getAllParticipants();
+function getEligiblePool({ excludePreviousWinners, audience, eventId }) {
+  const all = eventId ? getParticipantsByEvent(eventId) : getAllParticipants();
   const previousWinners = excludePreviousWinners ? getPreviousWinnerIds() : new Set();
   return all.filter((p) => {
     if (audience === "family" && !p.isFamily) return false;
@@ -271,8 +303,8 @@ function getEligiblePool({ excludePreviousWinners, audience }) {
   });
 }
 
-function pickWinners(count, { excludePreviousWinners, audience }) {
-  const pool = getEligiblePool({ excludePreviousWinners, audience });
+function pickWinners(count, { excludePreviousWinners, audience, eventId }) {
+  const pool = getEligiblePool({ excludePreviousWinners, audience, eventId });
   // Fisher-Yates shuffle
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -371,9 +403,11 @@ function revealNextWinner(raffleId) {
 module.exports = {
   db,
   getAllParticipants,
+  getParticipantsByEvent,
   insertParticipant,
   updateParticipant,
   deleteParticipant,
+  deleteParticipantsByEvent,
   clearParticipants,
   getNextRaffleNumber,
   insertManyParticipants,

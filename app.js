@@ -82,12 +82,22 @@ let raffles = [];
 let activeTheme = "default";
 let drawInProgress = false;
 let customImages = [];   // array of { id, url, ... }
+let currentEventId = null;
+let currentEventName = "";
+let eventParticipants = [];
+let eventRaffleCounter = 1;
 
 /* ===== Data loaders ===== */
 async function loadParticipants() {
   const data = await api("/participants");
   participants = data.participants;
   raffleCounter = data.nextRaffleNumber;
+}
+
+async function loadEventParticipants(eventId) {
+  const data = await api(`/events/${eventId}/participants`);
+  eventParticipants = data.participants;
+  eventRaffleCounter = data.nextRaffleNumber;
 }
 
 async function loadEvents() {
@@ -164,10 +174,11 @@ function renderStats() {
 }
 
 function renderList() {
+  const source = currentEventId ? eventParticipants : participants;
   const term = searchInput.value.trim().toLowerCase();
   const familyFilter = filterFamily ? filterFamily.value : "all";
 
-  const filtered = participants.filter((entry) => {
+  const filtered = source.filter((entry) => {
     const matchesName = entry.name.toLowerCase().includes(term);
     const matchesFamily =
       familyFilter === "all" ||
@@ -326,12 +337,12 @@ function renderEvents() {
     const addBtn = document.createElement("button");
     addBtn.className = "icon-button";
     addBtn.textContent = "Add Participants";
-    addBtn.addEventListener("click", () => showAddParticipantModal());
+    addBtn.addEventListener("click", () => showAddParticipantModal(eventItem.id, eventItem.name));
 
     const viewBtn = document.createElement("button");
     viewBtn.className = "icon-button";
     viewBtn.textContent = "View Participants";
-    viewBtn.addEventListener("click", () => showViewParticipantsModal());
+    viewBtn.addEventListener("click", () => showViewParticipantsModal(eventItem.id, eventItem.name));
 
     leftGroup.appendChild(addBtn);
     leftGroup.appendChild(viewBtn);
@@ -570,27 +581,35 @@ function renderActivity() {
   });
 }
 
-function updateEligibleCount() {
+async function updateEligibleCount() {
   if (!eligibleCount) return;
   const exclude = raffleExcludeToggle?.checked;
   const audience = raffleAudienceSelect ? raffleAudienceSelect.value : "everyone";
-  const count = getEligibleCount(exclude, audience);
-  eligibleCount.textContent = `Eligible participants: ${count}`;
-  eligibleCount.style.display = "block";
-}
+  const eventId = raffleEventSelect ? raffleEventSelect.value : "";
 
-function getEligiblePool({ excludePreviousWinners, audience } = {}) {
-  const previousWinnerIds = excludePreviousWinners ? getPreviousWinnerIds() : new Set();
-  return participants.filter((entry) => {
+  let pool;
+  if (eventId) {
+    try {
+      const data = await api(`/events/${eventId}/participants`);
+      pool = data.participants;
+    } catch {
+      eligibleCount.textContent = "Eligible participants: ?";
+      return;
+    }
+  } else {
+    pool = participants;
+  }
+
+  const previousWinnerIds = exclude ? getPreviousWinnerIds() : new Set();
+  const count = pool.filter((entry) => {
     if (audience === "family" && !entry.isFamily) return false;
     if (audience === "non-family" && entry.isFamily) return false;
-    if (excludePreviousWinners && previousWinnerIds.has(entry.id)) return false;
+    if (exclude && previousWinnerIds.has(entry.id)) return false;
     return true;
-  });
-}
+  }).length;
 
-function getEligibleCount(excludePreviousWinners, audience) {
-  return getEligiblePool({ excludePreviousWinners, audience }).length;
+  eligibleCount.textContent = `Eligible participants: ${count}`;
+  eligibleCount.style.display = "block";
 }
 
 function getPreviousWinnerIds() {
@@ -748,8 +767,12 @@ function hideCreateEventModal() {
 }
 
 /* ===== Participant modals ===== */
-function showAddParticipantModal() {
+function showAddParticipantModal(eventId, eventName) {
+  currentEventId = eventId || null;
+  currentEventName = eventName || "";
   if (!addParticipantModal) return;
+  const titleEl = addParticipantModal.querySelector(".panel-header h2");
+  if (titleEl) titleEl.textContent = eventName ? `New registration \u2014 ${eventName}` : "New registration";
   addParticipantModal.classList.add("is-visible");
   addParticipantModal.setAttribute("aria-hidden", "false");
   if (nameInput) requestAnimationFrame(() => nameInput.focus());
@@ -759,10 +782,17 @@ function hideAddParticipantModal() {
   if (!addParticipantModal) return;
   addParticipantModal.classList.remove("is-visible");
   addParticipantModal.setAttribute("aria-hidden", "true");
+  currentEventId = null;
+  currentEventName = "";
 }
 
-function showViewParticipantsModal() {
+async function showViewParticipantsModal(eventId, eventName) {
+  currentEventId = eventId || null;
+  currentEventName = eventName || "";
   if (!viewParticipantsModal) return;
+  const titleEl = viewParticipantsModal.querySelector(".panel-header h2");
+  if (titleEl) titleEl.textContent = eventName ? `Participants \u2014 ${eventName}` : "Participant list";
+  if (eventId) await loadEventParticipants(eventId);
   renderList();
   viewParticipantsModal.classList.add("is-visible");
   viewParticipantsModal.setAttribute("aria-hidden", "false");
@@ -772,16 +802,26 @@ function hideViewParticipantsModal() {
   if (!viewParticipantsModal) return;
   viewParticipantsModal.classList.remove("is-visible");
   viewParticipantsModal.setAttribute("aria-hidden", "true");
+  currentEventId = null;
+  currentEventName = "";
 }
 
 /* ===== Mutation functions (now async) ===== */
 async function addParticipant(name, isFamily) {
-  const entry = await api("/participants", {
+  const endpoint = currentEventId
+    ? `/events/${currentEventId}/participants`
+    : "/participants";
+  const entry = await api(endpoint, {
     method: "POST",
     body: JSON.stringify({ name, isFamily }),
   });
-  participants = [entry, ...participants];
-  raffleCounter = entry.raffleNumber + 1;
+  if (currentEventId) {
+    eventParticipants = [entry, ...eventParticipants];
+    eventRaffleCounter = entry.raffleNumber + 1;
+  } else {
+    participants = [entry, ...participants];
+    raffleCounter = entry.raffleNumber + 1;
+  }
   renderStats();
   renderList();
   updateEligibleCount();
@@ -793,7 +833,11 @@ async function editParticipant(id, name, isFamily) {
     method: "PUT",
     body: JSON.stringify({ name, isFamily }),
   });
-  participants = participants.map((p) => (p.id === id ? updated : p));
+  if (currentEventId) {
+    eventParticipants = eventParticipants.map((p) => (p.id === id ? updated : p));
+  } else {
+    participants = participants.map((p) => (p.id === id ? updated : p));
+  }
   renderStats();
   renderList();
   updateEligibleCount();
@@ -801,10 +845,17 @@ async function editParticipant(id, name, isFamily) {
 
 async function removeParticipant(id) {
   await api(`/participants/${id}`, { method: "DELETE" });
-  participants = participants.filter((entry) => entry.id !== id);
-  raffleCounter = participants.length > 0
-    ? Math.max(...participants.map((p) => p.raffleNumber)) + 1
-    : 1;
+  if (currentEventId) {
+    eventParticipants = eventParticipants.filter((entry) => entry.id !== id);
+    eventRaffleCounter = eventParticipants.length > 0
+      ? Math.max(...eventParticipants.map((p) => p.raffleNumber)) + 1
+      : 1;
+  } else {
+    participants = participants.filter((entry) => entry.id !== id);
+    raffleCounter = participants.length > 0
+      ? Math.max(...participants.map((p) => p.raffleNumber)) + 1
+      : 1;
+  }
   renderStats();
   renderList();
   updateEligibleCount();
@@ -857,11 +908,18 @@ async function seedParticipants(count = 400) {
   if (!confirmed) return;
 
   try {
-    await api("/participants/seed", {
+    const endpoint = currentEventId
+      ? `/events/${currentEventId}/participants/seed`
+      : "/participants/seed";
+    await api(endpoint, {
       method: "POST",
       body: JSON.stringify({ count }),
     });
-    await loadParticipants();
+    if (currentEventId) {
+      await loadEventParticipants(currentEventId);
+    } else {
+      await loadParticipants();
+    }
     renderStats();
     renderList();
     updateEligibleCount();
@@ -1343,10 +1401,34 @@ if (closeRaffleModal) {
 }
 
 document.addEventListener("keydown", (event) => {
-  if (!raffleModal || !raffleModal.classList.contains("is-visible")) return;
   if (event.key === "Enter") {
-    event.preventDefault();
-    hideRaffleModal();
+    if (raffleModal?.classList.contains("is-visible")) {
+      event.preventDefault();
+      hideRaffleModal();
+      return;
+    }
+  }
+  if (event.key === "Escape") {
+    if (raffleModal?.classList.contains("is-visible")) {
+      hideRaffleModal();
+      return;
+    }
+    if (addParticipantModal?.classList.contains("is-visible")) {
+      hideAddParticipantModal();
+      return;
+    }
+    if (viewParticipantsModal?.classList.contains("is-visible")) {
+      hideViewParticipantsModal();
+      return;
+    }
+    if (createEventModal?.classList.contains("is-visible")) {
+      hideCreateEventModal();
+      return;
+    }
+    if (winnerModal?.classList.contains("is-visible") && !drawInProgress) {
+      hideWinnerModal();
+      return;
+    }
   }
 });
 
@@ -1365,6 +1447,7 @@ if (raffleForm) raffleForm.addEventListener("reset", () => {
 if (clearRafflesButton) clearRafflesButton.addEventListener("click", clearRaffles);
 if (raffleExcludeToggle) raffleExcludeToggle.addEventListener("change", updateEligibleCount);
 if (raffleAudienceSelect) raffleAudienceSelect.addEventListener("change", updateEligibleCount);
+if (raffleEventSelect) raffleEventSelect.addEventListener("change", updateEligibleCount);
 if (imageUpload) imageUpload.addEventListener("change", handleImageUpload);
 if (clearImagesBtn) clearImagesBtn.addEventListener("click", clearCustomImages);
 

@@ -161,11 +161,72 @@ app.post("/api/events", (req, res) => {
 
 // DELETE /api/events/:id
 app.delete("/api/events/:id", (req, res) => {
+  db.deleteParticipantsByEvent(req.params.id);
   const result = db.deleteEvent(req.params.id);
   if (result.changes === 0) {
     return res.status(404).json({ error: "Event not found" });
   }
   res.json({ ok: true });
+});
+
+// ===================== EVENT PARTICIPANTS =====================
+
+// GET /api/events/:eventId/participants
+app.get("/api/events/:eventId/participants", (req, res) => {
+  const participants = db.getParticipantsByEvent(req.params.eventId);
+  const nextNumber = db.getNextRaffleNumber(req.params.eventId);
+  res.json({ participants, nextRaffleNumber: nextNumber });
+});
+
+// POST /api/events/:eventId/participants
+app.post("/api/events/:eventId/participants", (req, res) => {
+  const { name, isFamily } = req.body;
+  if (!name || typeof name !== "string" || !name.trim()) {
+    return res.status(400).json({ error: "Name is required" });
+  }
+  const eventId = req.params.eventId;
+  const id = uuidv4();
+  const raffleNumber = db.getNextRaffleNumber(eventId);
+  const createdAt = new Date().toISOString();
+  db.insertParticipant({
+    id,
+    name: name.trim(),
+    isFamily: !!isFamily,
+    raffleNumber,
+    eventId,
+    createdAt,
+  });
+  res.status(201).json({
+    id,
+    name: name.trim(),
+    isFamily: !!isFamily,
+    raffleNumber,
+    eventId,
+    createdAt,
+  });
+});
+
+// POST /api/events/:eventId/participants/seed
+app.post("/api/events/:eventId/participants/seed", (req, res) => {
+  const eventId = req.params.eventId;
+  const count = Number(req.body.count) || 400;
+  const startNumber = db.getNextRaffleNumber(eventId);
+  const now = Date.now();
+  const familyQuota = Math.min(40, count);
+  const generated = Array.from({ length: count }, (_, index) => {
+    const raffleNumber = startNumber + index;
+    const nameSuffix = String(raffleNumber).padStart(3, "0");
+    return {
+      id: uuidv4(),
+      name: `Test Participant ${nameSuffix}`,
+      isFamily: index < familyQuota,
+      raffleNumber,
+      eventId,
+      createdAt: new Date(now - index * 1000).toISOString(),
+    };
+  });
+  db.insertManyParticipants(generated);
+  res.status(201).json({ added: count, nextRaffleNumber: db.getNextRaffleNumber(eventId) });
 });
 
 // ===================== RAFFLES =====================
@@ -215,6 +276,7 @@ app.put("/api/raffles/:id/draw", (req, res) => {
   const pool = db.getEligiblePool({
     excludePreviousWinners: raffle.excludePreviousWinners,
     audience: raffle.raffleAudience,
+    eventId: raffle.eventId || null,
   });
 
   if (pool.length < raffle.count) {
@@ -224,6 +286,7 @@ app.put("/api/raffles/:id/draw", (req, res) => {
   const winners = db.pickWinners(raffle.count, {
     excludePreviousWinners: raffle.excludePreviousWinners,
     audience: raffle.raffleAudience,
+    eventId: raffle.eventId || null,
   });
 
   // Delete any existing winners (in case of re-draw from "drawing" state)
