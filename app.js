@@ -1183,6 +1183,7 @@ async function drawRaffleNow(raffleId) {
   drawInProgress = true;
   const raffleNumbers = eligible.map((p) => p.raffleNumber);
   const maxNum = Math.max(...raffleNumbers);
+  const animMax = Math.max(maxNum, 100);
 
   // Open the winner modal immediately with animating placeholder badges
   winnerNumbers.innerHTML = "";
@@ -1203,7 +1204,7 @@ async function drawRaffleNow(raffleId) {
   const badges = [...winnerNumbers.querySelectorAll(".winner-badge")];
   const intervals = badges.map((badge) =>
     setInterval(() => {
-      badge.textContent = "#" + (Math.floor(Math.random() * maxNum) + 1);
+      badge.textContent = "#" + (Math.floor(Math.random() * animMax) + 1);
     }, 50)
   );
 
