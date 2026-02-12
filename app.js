@@ -117,6 +117,10 @@ async function loadTheme() {
 
 async function loadCustomImages() {
   customImages = await api("/images");
+  customImages.forEach((img) => {
+    const preload = new Image();
+    preload.src = img.url;
+  });
 }
 
 async function loadDisplayModes() {
@@ -1384,6 +1388,7 @@ function handleImageUpload(event) {
     if (xhr.status >= 200 && xhr.status < 300) {
       try {
         const saved = JSON.parse(xhr.responseText);
+        saved.forEach((img) => { const p = new Image(); p.src = img.url; });
         customImages = [...customImages, ...saved];
         renderImagesPreview();
         uploadLabel.textContent = "Upload complete!";
