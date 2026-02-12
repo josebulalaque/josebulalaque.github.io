@@ -53,6 +53,7 @@ const raffleEventSelect = document.getElementById("raffleEvent");
 const raffleTypeSelect = document.getElementById("raffleType");
 const raffleAudienceSelect = document.getElementById("raffleAudience");
 const raffleCountInput = document.getElementById("raffleCount");
+const raffleCountValue = document.getElementById("raffleCountValue");
 const raffleNotesInput = document.getElementById("raffleNotes");
 const raffleList = document.getElementById("raffleList");
 const clearRafflesButton = document.getElementById("clearRaffles");
@@ -1481,7 +1482,7 @@ function setActiveView(viewId) {
   navItems.forEach((item) => {
     item.classList.toggle("is-active", item.dataset.view === viewId.replace("view-", ""));
   });
-  if (viewId === "view-raffles" && raffleCountInput) requestAnimationFrame(() => raffleCountInput.focus());
+  if (viewId === "view-raffles" && raffleTitleInput) requestAnimationFrame(() => raffleTitleInput.focus());
 }
 
 /* ===== Emoji list (used by draw overlay) ===== */
@@ -1607,7 +1608,11 @@ if (eventForm) eventForm.addEventListener("submit", handleEventSubmit);
 if (createRaffleDraftButton) createRaffleDraftButton.addEventListener("click", handleRaffleDraft);
 if (raffleForm) raffleForm.addEventListener("reset", () => {
   if (raffleHint) raffleHint.textContent = "";
+  if (raffleCountValue) raffleCountValue.textContent = "1";
   requestAnimationFrame(updateEligibleCount);
+});
+if (raffleCountInput) raffleCountInput.addEventListener("input", () => {
+  if (raffleCountValue) raffleCountValue.textContent = raffleCountInput.value;
 });
 if (clearRafflesButton) clearRafflesButton.addEventListener("click", clearRaffles);
 if (raffleExcludeToggle) raffleExcludeToggle.addEventListener("change", updateEligibleCount);

@@ -245,8 +245,8 @@ app.get("/api/raffles", (_req, res) => {
 // POST /api/raffles — create a draft (pending) raffle
 app.post("/api/raffles", (req, res) => {
   const { title, eventId, eventName, raffleType, count, raffleAudience, excludePreviousWinners, notes } = req.body;
-  if (!title || !count || count < 1) {
-    return res.status(400).json({ error: "Title and count are required" });
+  if (!title || !count || count < 1 || count > 10) {
+    return res.status(400).json({ error: "Title is required and winner count must be between 1 and 10" });
   }
   const id = uuidv4();
   const createdAt = new Date().toISOString();
