@@ -791,7 +791,18 @@ function hideWinnerModal() {
   if (!winnerModal) return;
   winnerModal.classList.remove("is-visible");
   winnerModal.setAttribute("aria-hidden", "true");
-  if (drawOverlay) drawOverlay.innerHTML = "";
+  resetDrawOverlay();
+}
+
+function resetDrawOverlay() {
+  if (!drawOverlay) return;
+  drawOverlay.querySelectorAll(".food-item").forEach((item) => {
+    item.classList.remove("is-scattered");
+    item.style.left = "-200%";
+    item.style.top = "-200%";
+    item.style.opacity = "0";
+    item.style.transform = "";
+  });
 }
 
 /* ===== Alert modal ===== */
@@ -1298,9 +1309,9 @@ async function drawRaffleNow(raffleId) {
       delay += 300 + Math.random() * 400; // 300-700ms between each
     });
   } catch (err) {
-    // On error: stop all animations, clear overlay, close modal, show error
+    // On error: stop all animations, reset overlay, close modal, show error
     intervals.forEach(clearInterval);
-    if (drawOverlay) drawOverlay.innerHTML = "";
+    resetDrawOverlay();
     hideWinnerModal();
     showRaffleHint(err.message);
     drawInProgress = false;
