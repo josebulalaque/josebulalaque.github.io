@@ -48,65 +48,55 @@
 
       <main class="main">
         <section class="view is-active" id="view-dashboard">
-        <header class="hero">
-          <div class="hero-text">
-            <div class="eyebrow">Raffle time</div>
-            <h1>Run events, drafts, and winner draws in one place</h1>
-            <p>Participants, events, raffles — all in one happy place.</p>
-          </div>
-          <div class="hero-panel">
-            <div class="hero-panel-title">Session highlights</div>
-            <div class="hero-panel-grid">
-              <div class="hero-metric">
-                <div class="hero-metric-value" id="statTotal">0</div>
-                <div class="hero-metric-label">Total registered</div>
+          <header class="hero">
+            <div class="hero-text">
+              <div class="eyebrow">Raffle time</div>
+              <h1>Run events, drafts, and winner draws in one place</h1>
+              <p>Participants, events, raffles — all in one happy place.</p>
+            </div>
+            <div class="hero-stats">
+              <div class="hero-stat">
+                <div class="hero-stat-value" id="statEvents">0</div>
+                <div class="hero-stat-label">Events</div>
               </div>
-              <div class="hero-metric">
-                <div class="hero-metric-value" id="statNext">1</div>
-                <div class="hero-metric-label">Next raffle #</div>
+              <div class="hero-stat">
+                <div class="hero-stat-value" id="statParticipants">0</div>
+                <div class="hero-stat-label">Participants</div>
               </div>
-              <div class="hero-metric">
-                <div class="hero-metric-value" id="statLast">-</div>
-                <div class="hero-metric-label">Last added</div>
+              <div class="hero-stat">
+                <div class="hero-stat-value" id="statDrawsComplete">0</div>
+                <div class="hero-stat-label">Draws complete</div>
+              </div>
+              <div class="hero-stat">
+                <div class="hero-stat-value" id="statPending">0</div>
+                <div class="hero-stat-label">Pending draws</div>
               </div>
             </div>
-          </div>
-        </header>
+          </header>
 
-        <section class="dashboard-grid">
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Quick stats</h2>
-              <p>Live snapshot based on your saved data.</p>
-            </div>
-            <div class="dashboard-stats">
-              <div class="dashboard-stat">
-                <div class="dashboard-value" id="statEvents">0</div>
-                <div class="dashboard-label">Events</div>
+          <section class="dashboard-grid">
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Upcoming Events</h2>
+                <p>Your scheduled events with participant counts.</p>
               </div>
-              <div class="dashboard-stat">
-                <div class="dashboard-value" id="statRaffles">0</div>
-                <div class="dashboard-label">Raffles</div>
-              </div>
-              <div class="dashboard-stat">
-                <div class="dashboard-value" id="statPending">0</div>
-                <div class="dashboard-label">Pending draws</div>
-              </div>
-              <div class="dashboard-stat">
-                <div class="dashboard-value" id="statLastDraw">-</div>
-                <div class="dashboard-label">Last draw</div>
+              <div class="dashboard-events" id="dashboardEvents"></div>
+              <div class="panel-footer">
+                <button class="button ghost" data-goto="events">View all events &rarr;</button>
               </div>
             </div>
-          </div>
 
-          <div class="panel">
-            <div class="panel-header">
-              <h2>Recent activity</h2>
-              <p>Latest participants, events, and raffle draws.</p>
+            <div class="panel">
+              <div class="panel-header">
+                <h2>Recent Draws</h2>
+                <p>Latest raffle results and pending draws.</p>
+              </div>
+              <div class="dashboard-draws" id="dashboardDraws"></div>
+              <div class="panel-footer">
+                <button class="button ghost" data-goto="raffles">View all draws &rarr;</button>
+              </div>
             </div>
-            <div class="activity-list" id="activityList"></div>
-          </div>
-        </section>
+          </section>
         </section>
 
         <section class="view" id="view-events">
@@ -260,7 +250,8 @@
               </label>
               <button type="button" id="clearImages" class="button ghost">Clear All</button>
             </div>
-            <div class="generator-images-preview" id="imagesPreview"></div>
+            <button type="button" id="viewImagesBtn" class="button ghost" style="display:none;">View uploaded images</button>
+            <div class="generator-images-preview" id="imagesPreview" style="display:none;"></div>
 
             <div class="generator-mode">
               <h4>Display Mode</h4>

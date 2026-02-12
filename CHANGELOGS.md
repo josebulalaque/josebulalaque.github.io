@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## 2026-02-12
 
+- Replaced automatic image thumbnail rendering on Settings page with a "View uploaded images" toggle button for faster page loads.
+- Thumbnails are now loaded on demand — click the button to show/hide previews.
+- Button displays the current image count (e.g. "View uploaded images (12)") and hides when no images are uploaded.
+
 - Every event now has its own set of participants — adding, viewing, editing, seeding, and removing participants is scoped per event.
 - Raffle numbers start from 1 within each event independently.
 - Raffle draws tied to an event only pull from that event's eligible participants.

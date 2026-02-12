@@ -20,8 +20,6 @@ const nameInput = document.getElementById("name");
 const list = document.getElementById("participantList");
 const searchInput = document.getElementById("search");
 const filterFamily = document.getElementById("filterFamily");
-const exportCsv = document.getElementById("exportCsv");
-const clearAll = document.getElementById("clearAll");
 const seedParticipantsButton = document.getElementById("seedParticipants");
 const navItems = Array.from(document.querySelectorAll(".nav-item[data-view]"));
 const views = Array.from(document.querySelectorAll(".view"));
@@ -58,19 +56,18 @@ const eligibleCount = document.getElementById("eligibleCount");
 const createRaffleDraftButton = document.getElementById("createRaffleDraft");
 const themeCards = Array.from(document.querySelectorAll(".theme-card[data-theme]"));
 
-const statTotal = document.getElementById("statTotal");
-const statNext = document.getElementById("statNext");
-const statLast = document.getElementById("statLast");
 const statEvents = document.getElementById("statEvents");
-const statRaffles = document.getElementById("statRaffles");
+const statParticipants = document.getElementById("statParticipants");
+const statDrawsComplete = document.getElementById("statDrawsComplete");
 const statPending = document.getElementById("statPending");
-const statLastDraw = document.getElementById("statLastDraw");
-const activityList = document.getElementById("activityList");
+const dashboardEvents = document.getElementById("dashboardEvents");
+const dashboardDraws = document.getElementById("dashboardDraws");
 
 // Image upload elements
 const imageUpload = document.getElementById("imageUpload");
 const clearImagesBtn = document.getElementById("clearImages");
 const imagesPreview = document.getElementById("imagesPreview");
+const viewImagesBtn = document.getElementById("viewImagesBtn");
 const modeImagesToggle = document.getElementById("modeImages");
 const modeEmojisToggle = document.getElementById("modeEmojis");
 
@@ -117,6 +114,22 @@ async function loadCustomImages() {
   customImages = await api("/images");
 }
 
+async function loadDisplayModes() {
+  const data = await api("/display-modes");
+  if (modeImagesToggle) modeImagesToggle.checked = data.modeImages;
+  if (modeEmojisToggle) modeEmojisToggle.checked = data.modeEmojis;
+}
+
+async function saveDisplayModes() {
+  await api("/display-modes", {
+    method: "PUT",
+    body: JSON.stringify({
+      modeImages: modeImagesToggle ? modeImagesToggle.checked : true,
+      modeEmojis: modeEmojisToggle ? modeEmojisToggle.checked : true,
+    }),
+  });
+}
+
 /* ===== Formatting helpers (unchanged) ===== */
 function formatDate(value) {
   if (!value) return "-";
@@ -150,27 +163,18 @@ function formatEventTime(timeValue) {
 
 /* ===== Render functions (unchanged except image URLs) ===== */
 function renderStats() {
-  statTotal.textContent = participants.length;
-  if (statNext) statNext.textContent = raffleCounter;
-  const last = participants[0];
-  statLast.textContent = last ? formatDate(last.createdAt) : "-";
   if (statEvents) statEvents.textContent = events.length;
-  if (statRaffles) statRaffles.textContent = raffles.length;
+  if (statParticipants) statParticipants.textContent = participants.length;
+  if (statDrawsComplete) {
+    statDrawsComplete.textContent = raffles.filter(r => r.status === "drawn").length;
+  }
   if (statPending) {
-    statPending.textContent = raffles.filter((raffle) => {
-      const statusValue = raffle.status || (raffle.winners && raffle.winners.length > 0 ? "drawn" : "pending");
-      return statusValue === "pending" || statusValue === "drawing";
-    }).length;
+    statPending.textContent = raffles.filter(r =>
+      r.status === "pending" || r.status === "drawing"
+    ).length;
   }
-  if (statLastDraw) {
-    const drawn = raffles
-      .filter((raffle) => raffle.status === "drawn" || (raffle.winners && raffle.winners.length > 0))
-      .map((raffle) => raffle.drawnAt || raffle.createdAt)
-      .filter(Boolean)
-      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    statLastDraw.textContent = drawn.length > 0 ? formatDate(drawn[0]) : "-";
-  }
-  renderActivity();
+  renderDashboardEvents();
+  renderDashboardDraws();
 }
 
 function renderList() {
@@ -516,68 +520,100 @@ function renderRaffles() {
   });
 }
 
-function renderActivity() {
-  if (!activityList) return;
-  const items = [];
+function renderDashboardEvents() {
+  if (!dashboardEvents) return;
+  dashboardEvents.innerHTML = "";
 
-  participants.forEach((entry) => {
-    items.push({ title: "Participant added", meta: entry.name, time: entry.createdAt });
-  });
-
-  events.forEach((eventItem) => {
-    items.push({ title: "Event created", meta: eventItem.name, time: eventItem.createdAt || eventItem.date });
-  });
-
-  raffles.forEach((raffle) => {
-    const statusValue = raffle.status || (raffle.winners && raffle.winners.length > 0 ? "drawn" : "pending");
-    if (statusValue === "drawn") {
-      items.push({
-        title: "Raffle drawn",
-        meta: `${raffle.title} · ${raffle.count} winner${raffle.count === 1 ? "" : "s"}`,
-        time: raffle.drawnAt || raffle.createdAt,
-      });
-    } else {
-      items.push({
-        title: "Raffle draft",
-        meta: `${raffle.title} · Pending draw`,
-        time: raffle.createdAt,
-      });
-    }
-  });
-
-  const sorted = items
-    .filter((item) => item.time)
-    .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
-    .slice(0, 6);
-
-  activityList.innerHTML = "";
-  if (sorted.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "empty-state";
-    empty.textContent = "No recent activity yet.";
-    activityList.appendChild(empty);
+  if (events.length === 0) {
+    dashboardEvents.innerHTML = '<div class="empty-state">No events created yet.</div>';
     return;
   }
 
-  sorted.forEach((item) => {
+  const countMap = {};
+  participants.forEach(p => {
+    if (p.eventId) countMap[p.eventId] = (countMap[p.eventId] || 0) + 1;
+  });
+
+  events.slice(0, 5).forEach(ev => {
+    const count = countMap[ev.id] || 0;
     const row = document.createElement("div");
-    row.className = "activity-item";
-    const main = document.createElement("div");
-    main.className = "activity-main";
-    const title = document.createElement("div");
-    title.className = "activity-title";
-    title.textContent = item.title;
+    row.className = "dash-event-row";
+
+    const info = document.createElement("div");
+    info.className = "dash-event-info";
+
+    const name = document.createElement("div");
+    name.className = "dash-event-name";
+    name.textContent = ev.name;
+
     const meta = document.createElement("div");
-    meta.className = "activity-meta";
-    meta.textContent = item.meta;
-    main.appendChild(title);
-    main.appendChild(meta);
-    const time = document.createElement("div");
-    time.className = "activity-time";
-    time.textContent = formatDateTime(item.time);
-    row.appendChild(main);
-    row.appendChild(time);
-    activityList.appendChild(row);
+    meta.className = "dash-event-meta";
+    const dateText = formatEventDate(ev.date);
+    const timeText = formatEventTime(ev.time);
+    meta.textContent = timeText ? `${dateText} · ${timeText}` : dateText;
+
+    info.appendChild(name);
+    info.appendChild(meta);
+
+    const badge = document.createElement("div");
+    badge.className = "dash-event-count";
+    badge.textContent = `${count} participant${count !== 1 ? "s" : ""}`;
+
+    row.appendChild(info);
+    row.appendChild(badge);
+    dashboardEvents.appendChild(row);
+  });
+}
+
+function renderDashboardDraws() {
+  if (!dashboardDraws) return;
+  dashboardDraws.innerHTML = "";
+
+  if (raffles.length === 0) {
+    dashboardDraws.innerHTML = '<div class="empty-state">No raffle draws yet.</div>';
+    return;
+  }
+
+  raffles.slice(0, 5).forEach(raffle => {
+    const row = document.createElement("div");
+    row.className = "dash-draw-row";
+
+    const info = document.createElement("div");
+    info.className = "dash-draw-info";
+
+    const title = document.createElement("div");
+    title.className = "dash-draw-title";
+    title.textContent = raffle.title;
+
+    const meta = document.createElement("div");
+    meta.className = "dash-draw-meta";
+    const eventLabel = raffle.eventName || "No event";
+    meta.textContent = `${eventLabel} · ${raffle.count} winner${raffle.count !== 1 ? "s" : ""}`;
+
+    info.appendChild(title);
+    info.appendChild(meta);
+
+    const right = document.createElement("div");
+    right.className = "dash-draw-right";
+
+    if (raffle.status === "drawn" && raffle.winners?.length > 0) {
+      const winners = document.createElement("div");
+      winners.className = "dash-draw-winners";
+      winners.textContent = raffle.winners.map(w => `#${w.raffleNumber}`).join(", ");
+      right.appendChild(winners);
+    }
+
+    const status = document.createElement("div");
+    const statusClass = raffle.status === "drawn" ? "is-drawn"
+      : raffle.status === "drawing" ? "is-drawing" : "is-pending";
+    status.className = `status-pill ${statusClass}`;
+    status.textContent = raffle.status === "drawn" ? "Drawn"
+      : raffle.status === "drawing" ? "Drawing" : "Pending";
+    right.appendChild(status);
+
+    row.appendChild(info);
+    row.appendChild(right);
+    dashboardDraws.appendChild(row);
   });
 }
 
@@ -1309,18 +1345,37 @@ async function clearCustomImages() {
 }
 
 function renderImagesPreview() {
-  if (!imagesPreview) return;
+  if (!viewImagesBtn || !imagesPreview) return;
+
+  // Hide thumbnails whenever image list changes (user uploaded/cleared)
+  imagesPreview.style.display = "none";
+  imagesPreview.innerHTML = "";
 
   if (customImages.length === 0) {
-    imagesPreview.innerHTML = '<span class="empty">No custom images. Using default emojis.</span>';
+    viewImagesBtn.style.display = "none";
     return;
   }
 
-  const countLabel = `<div class="preview-count">${customImages.length} image${customImages.length === 1 ? "" : "s"} uploaded</div>`;
-  const thumbs = customImages
-    .map((img) => `<img src="${img.url}" class="preview-thumb" alt="Custom image" />`)
-    .join("");
-  imagesPreview.innerHTML = countLabel + `<div class="preview-thumbs">${thumbs}</div>`;
+  viewImagesBtn.style.display = "";
+  viewImagesBtn.textContent = `View uploaded images (${customImages.length})`;
+}
+
+function toggleImagesPreview() {
+  if (!imagesPreview || customImages.length === 0) return;
+
+  const isVisible = imagesPreview.style.display !== "none";
+  if (isVisible) {
+    imagesPreview.style.display = "none";
+    imagesPreview.innerHTML = "";
+    viewImagesBtn.textContent = `View uploaded images (${customImages.length})`;
+  } else {
+    const thumbs = customImages
+      .map((img) => `<img src="${img.url}" class="preview-thumb" alt="Custom image" loading="lazy" decoding="async" />`)
+      .join("");
+    imagesPreview.innerHTML = `<div class="preview-thumbs">${thumbs}</div>`;
+    imagesPreview.style.display = "";
+    viewImagesBtn.textContent = `Hide uploaded images (${customImages.length})`;
+  }
 }
 
 /* ===== View navigation (unchanged) ===== */
@@ -1343,6 +1398,10 @@ const FOOD_EMOJIS = [
 ];
 
 /* ===== Event listeners ===== */
+document.querySelectorAll("[data-goto]").forEach(btn => {
+  btn.addEventListener("click", () => setActiveView(`view-${btn.dataset.goto}`));
+});
+
 navItems.forEach((item) => {
   item.addEventListener("click", () => {
     const target = item.dataset.view;
@@ -1435,8 +1494,6 @@ document.addEventListener("keydown", (event) => {
 form.addEventListener("submit", handleSubmit);
 searchInput.addEventListener("input", renderList);
 if (filterFamily) filterFamily.addEventListener("change", renderList);
-exportCsv.addEventListener("click", exportParticipants);
-clearAll.addEventListener("click", clearParticipants);
 if (seedParticipantsButton) seedParticipantsButton.addEventListener("click", () => seedParticipants(400));
 if (eventForm) eventForm.addEventListener("submit", handleEventSubmit);
 if (createRaffleDraftButton) createRaffleDraftButton.addEventListener("click", handleRaffleDraft);
@@ -1450,6 +1507,9 @@ if (raffleAudienceSelect) raffleAudienceSelect.addEventListener("change", update
 if (raffleEventSelect) raffleEventSelect.addEventListener("change", updateEligibleCount);
 if (imageUpload) imageUpload.addEventListener("change", handleImageUpload);
 if (clearImagesBtn) clearImagesBtn.addEventListener("click", clearCustomImages);
+if (viewImagesBtn) viewImagesBtn.addEventListener("click", toggleImagesPreview);
+if (modeImagesToggle) modeImagesToggle.addEventListener("change", saveDisplayModes);
+if (modeEmojisToggle) modeEmojisToggle.addEventListener("change", saveDisplayModes);
 
 /* ===== Async init ===== */
 async function initApp() {
@@ -1460,6 +1520,7 @@ async function initApp() {
       loadRaffles(),
       loadTheme(),
       loadCustomImages(),
+      loadDisplayModes(),
     ]);
   } catch (err) {
     console.error("Failed to load data from API:", err);
@@ -1469,10 +1530,10 @@ async function initApp() {
   renderList();
   renderEvents();
   renderRaffles();
+  renderImagesPreview();
   applyTheme(activeTheme);
   setActiveView("view-dashboard");
   updateEligibleCount();
-  renderImagesPreview();
 }
 
 initApp();
