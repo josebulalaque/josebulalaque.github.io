@@ -35,6 +35,8 @@ export interface Certification {
   code?: string;
   issuer: string;
   date: string;
+  /** Validity has lapsed: shown as "Earned <year>" instead of the full date. */
+  lapsed?: boolean;
 }
 
 export interface EducationItem {
@@ -247,10 +249,10 @@ export const PORTFOLIO_DATA = {
   certifications: [
     { name: "LPIC-2: Linux Engineer", issuer: "Linux Professional Institute", date: "Sep 2024" },
     { name: "VMware Certified Professional - Network Virtualization 2023", code: "VCP-NV 2023", issuer: "VMware", date: "Nov 2023" },
-    { name: "AWS Certified Cloud Practitioner", code: "CLF-C01", issuer: "Amazon Web Services", date: "Jan 2023" },
+    { name: "AWS Certified Cloud Practitioner", code: "CLF-C01", issuer: "Amazon Web Services", date: "Jan 2023", lapsed: true },
     { name: "VMware Certified Professional 7 - Data Center Virtualization", code: "2V0-21.20", issuer: "VMware", date: "Sep 2022" },
     { name: "Microsoft Azure Fundamentals", code: "AZ-900", issuer: "Microsoft", date: "Oct 2020" },
-    { name: "Cisco Certified Network Associate", code: "200-301", issuer: "Cisco", date: "Sep 2020" },
+    { name: "Cisco Certified Network Associate", code: "200-301", issuer: "Cisco", date: "Sep 2020", lapsed: true },
     { name: "CompTIA Linux+ (Powered by LPI)", code: "LX0-103 / LX0-104", issuer: "CompTIA", date: "Sep 2019" },
     { name: "VMware Certified Professional 7 - Desktop and Mobility", code: "2V0-751", issuer: "VMware", date: "Nov 2018" },
     { name: "VMware Certified Professional 6 - Data Center Virtualization", code: "2V0-621", issuer: "VMware", date: "Nov 2016" },
@@ -288,6 +290,11 @@ export const PORTFOLIO_DATA = {
     { name: "cli", desc: "Switch to the interactive CLI", usage: "cli" },
   ],
 };
+
+/** Date label for a certification: the month earned, or "Earned <year>" once lapsed. */
+export function certDate(c: Certification) {
+  return c.lapsed ? `Earned ${c.date.split(" ").pop()}` : c.date;
+}
 
 /** Profile links that have a URL set, in display order. */
 export function getSocialLinks() {

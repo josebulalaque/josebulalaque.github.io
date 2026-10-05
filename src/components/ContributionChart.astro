@@ -1,0 +1,163 @@
+---
+import { fetchContributions, type ContributionDay } from "../utils/contributions";
+
+interface Props {
+  username: string;
+  profileUrl: string;
+}
+
+const { username, profileUrl } = Astro.props;
+const calendar = await fetchContributions(username);
+
+// Lay days out like GitHub: one column per week, Sunday at the top.
+type Cell = ContributionDay | null;
+const weeks: Cell[][] = [];
+const monthLabels: { col: number; label: string }[] = [];
+
+if (calendar) {
+  const first = new Date(`${calendar.days[0].date}T00:00:00Z`);
+  let week: Cell[] = Array(first.getUTCDay()).fill(null);
+  for (const day of calendar.days) {
+    week.push(day);
+    if (week.length === 7) {
+      weeks.push(week);
+      week = [];
+    }
+  }
+  if (week.length) weeks.push([...week, ...Array(7 - week.length).fill(null)]);
+
+  let lastMonth = -1;
+  weeks.forEach((w, col) => {
+    const firstDay = w.find(Boolean);
+    if (!firstDay) return;
+    const d = new Date(`${firstDay.date}T00:00:00Z`);
+    if (d.getUTCMonth() !== lastMonth) {
+      lastMonth = d.getUTCMonth();
+      // Skip a label squeezed into the first partial week.
+      if (col > 0 || w.filter(Boolean).length >= 4) {
+        monthLabels.push({ col, label: d.toLocaleString("en", { month: "short", timeZone: "UTC" }) });
+      }
+    }
+  });
+}
+
+const describe = (d: ContributionDay) =>
+  `${d.count === 0 ? "No" : d.count} contribution${d.count === 1 ? "" : "s"} on ${d.date}`;
+---
+
+{
+  calendar ? (
+    <div class="space-y-3 font-mono">
+      <div class="flex flex-wrap items-baseline justify-between gap-2 text-xs">
+        <span>
+          <span class="text-[var(--fg-bright)] font-bold">{calendar.total.toLocaleString("en")}</span>
+          <span class="text-[var(--fg-dim)]"> contributions in the last year</span>
+        </span>
+        <a href={profileUrl} target="_blank" rel="noopener noreferrer" class="text-[var(--accent)] font-bold hover:underline">
+          @{username} ↗
+        </a>
+      </div>
+
+      <div class="contrib-scroll overflow-x-auto pb-1" data-contrib-scroll>
+        <div class="contrib-wrap" style={`--weeks: ${weeks.length}`}>
+          <div class="contrib-months" aria-hidden="true">
+            {monthLabels.map((m) => (
+              <span style={`grid-column: ${m.col + 1}`}>{m.label}</span>
+            ))}
+          </div>
+          <div class="contrib-grid" role="img" aria-label={`${calendar.total} GitHub contributions in the last year`}>
+            {weeks.map((w) =>
+              w.map((d) =>
+                d ? <span class="contrib-cell" data-level={d.level} title={describe(d)} /> : <span class="contrib-cell contrib-empty" />,
+              ),
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-1 text-[10px] text-[var(--fg-dim)]" aria-hidden="true">
+        <span class="mr-1">Less</span>
+        {[0, 1, 2, 3, 4].map((l) => (
+          <span class="contrib-cell" data-level={l} />
+        ))}
+        <span class="ml-1">More</span>
+      </div>
+    </div>
+  ) : (
+    <p class="text-xs text-[var(--fg-dim)] font-mono">
+      Contribution chart unavailable right now. See{" "}
+      <a href={profileUrl} target="_blank" rel="noopener noreferrer" class="text-[var(--accent)] hover:underline">
+        my GitHub profile
+      </a>
+      .
+    </p>
+  )
+}
+
+<script>
+  // Show the most recent weeks first when the chart is wider than the screen.
+  // The GUI view starts hidden, so wait until the chart has a size.
+  document.querySelectorAll<HTMLElement>("[data-contrib-scroll]").forEach((el) => {
+    const observer = new ResizeObserver(() => {
+      if (el.clientWidth === 0) return;
+      el.scrollLeft = el.scrollWidth;
+      observer.disconnect();
+    });
+    observer.observe(el);
+  });
+</script>
+
+<style>
+  .contrib-wrap {
+    --cell: 11px;
+    --gap: 3px;
+    width: max-content;
+  }
+
+  .contrib-months,
+  .contrib-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--weeks), var(--cell));
+    column-gap: var(--gap);
+  }
+
+  .contrib-months {
+    font-size: 10px;
+    line-height: 1;
+    height: 14px;
+    color: var(--fg-dim);
+  }
+
+  .contrib-months span {
+    white-space: nowrap;
+  }
+
+  .contrib-grid {
+    grid-template-rows: repeat(7, var(--cell));
+    grid-auto-flow: column;
+    row-gap: var(--gap);
+  }
+
+  .contrib-cell {
+    display: inline-block;
+    width: var(--cell, 11px);
+    height: var(--cell, 11px);
+    border-radius: 2px;
+    background: var(--border-color);
+  }
+
+  .contrib-empty {
+    visibility: hidden;
+  }
+
+  .contrib-cell[data-level="1"] { background: color-mix(in srgb, var(--accent) 35%, var(--bg-main)); }
+  .contrib-cell[data-level="2"] { background: color-mix(in srgb, var(--accent) 58%, var(--bg-main)); }
+  .contrib-cell[data-level="3"] { background: color-mix(in srgb, var(--accent) 80%, var(--bg-main)); }
+  .contrib-cell[data-level="4"] { background: var(--accent); }
+
+  @media (min-width: 1024px) {
+    .contrib-wrap {
+      --cell: 12px;
+    }
+  }
+</style>

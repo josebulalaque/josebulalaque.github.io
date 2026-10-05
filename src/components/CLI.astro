@@ -62,7 +62,7 @@ import { PORTFOLIO_DATA } from "../data/portfolio";
 </div>
 
 <script>
-  import { PORTFOLIO_DATA, getSocialLinks } from "../data/portfolio";
+  import { PORTFOLIO_DATA, getSocialLinks, certDate } from "../data/portfolio";
   import { SPOTIFY_CONFIG, getSpotifyActivity } from "../config/spotifyConfig";
   import { RADIO_CONFIG } from "../config/radioConfig";
   import { fetchGitHubStats } from "../utils/github";
@@ -543,7 +543,7 @@ import { PORTFOLIO_DATA } from "../data/portfolio";
               .map(
                 (c) => `
             <div class="grid grid-cols-12 gap-2">
-              <span class="col-span-3 sm:col-span-2 text-[var(--fg-dim)]">${c.date}</span>
+              <span class="col-span-3 sm:col-span-2 text-[var(--fg-dim)]">${certDate(c)}</span>
               <span class="col-span-9 sm:col-span-10"><span class="text-[var(--fg-bright)] font-bold">${c.name}</span> <span class="text-[var(--fg-dim)]">// ${c.issuer}${c.code ? ` · ${c.code}` : ""}</span></span>
             </div>`,
               )
