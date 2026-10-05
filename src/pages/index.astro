@@ -1,78 +1,20 @@
 ---
-import Base from '../layouts/Base.astro';
-import Rack from '../components/Rack.astro';
-import PostList from '../components/PostList.astro';
-import { site } from '../data/site';
-import { getPosts } from '../lib/content';
-
-const recent = (await getPosts()).slice(0, 3);
+import Layout from '../layouts/Layout.astro';
+import TerminalWindow from '../components/TerminalWindow.astro';
+import MobileNotice from '../components/MobileNotice.astro';
+import CLI from '../components/CLI.astro';
+import GUIView from '../components/GUIView.astro';
 ---
 
-<Base>
-  <section class="hero wrap">
-    <h1>{site.name}</h1>
-    <p class="role">{site.role}</p>
-    <Rack />
-  </section>
+<Layout title="Jose Bulalaque // Systems Engineer">
+  <TerminalWindow>
+    <!-- Mobile Notice Banner -->
+    <MobileNotice />
 
-  <section id="about" class="wrap">
-    <h2>About</h2>
-    <div class="measure">
-      <!-- TODO: replace these paragraphs with your own words. -->
-      <p>
-        I build and look after servers: Linux and Windows, physical and virtual, from first install
-        through patching, backups and the 2 a.m. alert. The goal is systems that stay up, are easy to
-        rebuild, and don't surprise anyone.
-      </p>
-      <p>
-        I lean towards DevOps habits. Configuration lives in Git, changes go through Ansible or a
-        script rather than by hand, and anything I do twice gets automated. Good monitoring and
-        written runbooks matter as much as the servers themselves.
-      </p>
-    </div>
+    <!-- CLI Mode View -->
+    <CLI />
 
-    <h3>Off the clock</h3>
-    <!-- TODO: a few things about you outside work. -->
-    <ul class="measure off-clock">
-      <li>TODO: a hobby or interest</li>
-      <li>TODO: something you're learning, or what's running in your homelab</li>
-      <li>TODO: where you're based, or something you enjoy</li>
-    </ul>
-  </section>
-
-  {
-    recent.length > 0 && (
-      <section class="wrap">
-        <h2>Recent writing</h2>
-        <PostList posts={recent} />
-        <p class="more">
-          <a href="/blog/">All writing</a>
-        </p>
-      </section>
-    )
-  }
-</Base>
-
-<style>
-  .hero {
-    padding-block: clamp(2.5rem, 9vw, 6rem) 1rem;
-  }
-
-  .role {
-    font-size: clamp(1.15rem, 2.8vw, 1.45rem);
-    color: var(--muted);
-    margin: 1rem 0 clamp(2rem, 6vw, 3.5rem);
-  }
-
-  #about {
-    padding-top: 1.5rem;
-  }
-
-  .off-clock {
-    padding-left: 1.2rem;
-  }
-
-  .more {
-    margin-top: 1.5rem;
-  }
-</style>
+    <!-- GUI Visual Dashboard Mode View -->
+    <GUIView />
+  </TerminalWindow>
+</Layout>

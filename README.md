@@ -1,64 +1,30 @@
 # josebulalaque.github.io
 
-Personal site: profile, projects, writing and CV. Built with [Astro](https://astro.build) and deployed to GitHub Pages by GitHub Actions on every push to `main`.
+Personal site of Jose Bulalaque, systems engineer and server administrator. It's a retro terminal (TUI) portfolio with an interactive CLI and a GUI dashboard, built with Astro and Tailwind CSS. It is based on the [Retro TUI Portfolio](https://github.com/nivinvysakh/astro-tui-portfolio) template by Nivin (MIT licensed, see `LICENSE.MD`).
+
+Live at https://josebulalaque.github.io. Every push to `main` deploys through GitHub Actions.
 
 ## Run it locally
 
 ```sh
 npm install
-npm run dev      # http://localhost:4321, drafts included
-npm run build    # type-check and build to dist/
+npm run dev      # http://localhost:4321
+npm run build    # build to dist/
 npm run preview  # serve the built site
 ```
 
-## Where things live
+## Editing content
 
-| To change | Edit |
+Almost everything on the site comes from `src/data/portfolio.ts`:
+
+| Field | Shown in |
 | --- | --- |
-| Name, role, description, social links | `src/data/site.ts` |
-| About and "Off the clock" text | `src/pages/index.astro` |
-| CV | `src/data/cv.ts` |
-| Blog posts | `src/content/blog/*.md` |
-| Projects | `src/content/projects/*.md` |
-| Colours and fonts | `src/styles/global.css` |
+| `developer` (name, title, bio, quote, location, links) | `about`, `contact`, `links`, GUI header and sidebar |
+| `developer.specs`, `asciiBanner`, `palette` | `neofetch` and the GUI system card |
+| `skills` | `skills` and the GUI skill meters |
+| `collabs` | `collabs` and the GUI projects panel |
+| `commands` | `help` |
 
-### Write a post
+Lines marked `TODO` are placeholders. Leave `linkedin` or `twitter` empty to hide them. The GitHub stats and `repos` output are fetched live from your public GitHub profile, set by `developer.github`.
 
-Add `src/content/blog/my-post.md`. It is published at `/blog/my-post/`.
-
-```md
----
-title: My post
-description: One sentence for the list page, RSS and link previews.
-date: 2026-10-05
-tags: [ansible, networking]
-draft: false
----
-
-Post body in Markdown.
-```
-
-Posts with `draft: true` appear in `npm run dev` but are left out of the built site and the RSS feed.
-
-### Add a project
-
-The Projects page shows "In progress" until the first project exists. Add `src/content/projects/my-project.md`:
-
-```md
----
-title: Config backup pipeline
-summary: What it is and the problem it solves, in one or two sentences.
-date: 2026-10-05
-tags: [ansible, ci]
-repo: https://github.com/josebulalaque/my-project
-url: https://example.com
----
-
-Optional longer write-up.
-```
-
-`repo` and `url` are both optional.
-
-## Deploying
-
-The workflow in `.github/workflows/deploy.yml` builds and publishes the site. It needs one setting, made once: in the repository on GitHub go to **Settings → Pages → Build and deployment** and set **Source** to **GitHub Actions**.
+Other settings live in `src/config/`: colour themes (`themeConfig.ts`), CRT effects (`crtConfig.ts`), the radio playlist (`radioConfig.ts`), and the optional Spotify and game-activity widgets (`spotifyConfig.ts`, `gamesConfig.ts`). The Spotify and game-activity widgets are off by default.

@@ -1,0 +1,544 @@
+---
+import { PORTFOLIO_DATA, getSocialLinks } from "../data/portfolio";
+import Neofetch from "./Neofetch.astro";
+import SpotifyWidget from "./SpotifyWidget.astro";
+import GamesWidget from "./GamesWidget.astro";
+
+const { developer, skills, collabs } = PORTFOLIO_DATA;
+const socialLinks = getSocialLinks();
+---
+
+<div
+  id="view-gui"
+  class="hidden flex flex-col space-y-6 font-mono text-xs md:text-sm"
+>
+  <!-- Top Neofetch System Summary Card -->
+  <Neofetch />
+
+  <!-- Main TUI Grid: Sidebar Directory Navigation + Main Panel -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Sidebar Navigation Tree -->
+    <aside
+      class="lg:col-span-3 border border-[var(--border-color)] bg-[var(--bg-card)] p-4 space-y-4"
+    >
+      <div
+        class="text-[var(--accent)] font-bold border-b border-[var(--border-color)] pb-2 flex items-center justify-between"
+      >
+        <span>📁 EXPLORER</span>
+        <span class="text-[10px] text-[var(--fg-dim)]">CONTENTS</span>
+      </div>
+
+      <nav class="space-y-1 font-mono text-xs">
+        <a
+          href="#gui-about"
+          class="gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-[var(--fg-bright)] font-bold transition-colors"
+        >
+          <span class="text-yellow-400">📄</span> bio.txt (About Me)
+        </a>
+        <a
+          href="#gui-skills"
+          class="gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-[var(--fg-bright)] transition-colors"
+        >
+          <span class="text-emerald-400">⚙️</span> skills.sh (Skills)
+        </a>
+        <a
+          href="#gui-collabs"
+          class="gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-[var(--fg-bright)] transition-colors"
+        >
+          <span class="text-purple-400">🤝</span> collabs.md (Collabs)
+        </a>
+        <a
+          href="#gui-github"
+          class="gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-[var(--fg-bright)] transition-colors"
+        >
+          <span class="text-sky-400">🐙</span> github.sh (GitHub Stats)
+        </a>
+        <a
+          href="#gui-contact"
+          class="gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-[var(--fg-bright)] transition-colors"
+        >
+          <span class="text-red-400">✉️</span> contact.txt (Contact)
+        </a>
+        <button
+          type="button"
+          id="gui-launch-pong"
+          class="w-full text-left gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-[var(--accent)] font-bold transition-colors cursor-pointer border border-dashed border-[var(--border-color)] mt-1"
+        >
+          <span>🕹️</span> pong.sh (Pong Arcade)
+        </button>
+        <button
+          type="button"
+          id="gui-launch-snake"
+          class="w-full text-left gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-emerald-400 font-bold transition-colors cursor-pointer border border-dashed border-[var(--border-color)] mt-1"
+        >
+          <span>🐍</span> snake.sh (Snake Arcade)
+        </button>
+        <button
+          type="button"
+          id="gui-launch-radio"
+          class="w-full text-left gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-pink-400 font-bold transition-colors cursor-pointer border border-dashed border-[var(--border-color)] mt-1"
+        >
+          <span>📻</span> radio.sh (Lo-Fi Radio)
+        </button>
+      </nav>
+
+      <!-- Spotify Activity Widget -->
+      <SpotifyWidget />
+
+      <!-- Games Activity Widget -->
+      <GamesWidget />
+
+      <!-- Quick Metrics -->
+      <div
+        class="pt-4 border-t border-[var(--border-color)] space-y-2 text-[11px]"
+      >
+        <div
+          class="text-[var(--fg-dim)] font-bold uppercase tracking-wider text-[10px]"
+        >
+          CONTENT SPEC
+        </div>
+        <div class="flex justify-between text-[var(--fg-main)]">
+          <span>Active Collabs:</span>
+          <span class="font-bold text-[var(--fg-bright)]">{collabs.length}</span
+          >
+        </div>
+        <div class="flex justify-between text-[var(--fg-main)]">
+          <span>Skill Domains:</span>
+          <span class="font-bold text-yellow-400">{skills.length}</span>
+        </div>
+        <div class="flex justify-between text-[var(--fg-main)]">
+          <span>Experience:</span>
+          <span class="font-bold text-emerald-400">{developer.experience}</span>
+        </div>
+      </div>
+
+      <!-- Quick GitHub Link -->
+      <div class="pt-2">
+        <a
+          href={developer.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="w-full text-center block px-3 py-1.5 border border-[var(--border-color)] bg-[var(--bg-main)] hover:border-[var(--border-active)] text-[var(--fg-bright)] text-xs font-bold transition-colors"
+        >
+          GitHub Profile ↗
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="lg:col-span-9 space-y-8">
+      <!-- Section 1: About Me -->
+      <section
+        id="gui-about"
+        class="border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-5 space-y-4"
+      >
+        <div
+          class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-[var(--border-color)] pb-3"
+        >
+          <h2
+            class="text-xs sm:text-base font-bold text-[var(--fg-bright)] flex items-center gap-1.5 sm:gap-2 truncate"
+          >
+            <span class="text-[var(--accent)]">></span> CAT BIO.TXT // ABOUT ME
+          </h2>
+          <span class="text-[10px] sm:text-xs text-[var(--fg-dim)] shrink-0">[READ-ONLY]</span>
+        </div>
+
+        <p class="text-[var(--fg-main)] leading-relaxed text-xs sm:text-sm">
+          {developer.bio}
+        </p>
+
+        {
+          developer.quote && (
+            <blockquote class="p-3 border-l-2 border-[var(--accent)] bg-[var(--bg-main)] text-[var(--fg-dim)] italic text-xs leading-relaxed">
+              {developer.quote}
+            </blockquote>
+          )
+        }
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div
+            class="p-3 border border-[var(--border-color)] bg-[var(--bg-main)] space-y-1"
+          >
+            <span class="text-[10px] text-[var(--fg-dim)] uppercase font-bold"
+              >ENGINEERING FOCUS</span
+            >
+            <div class="text-xs text-[var(--accent)] font-bold">
+              {developer.focus}
+            </div>
+          </div>
+          <div
+            class="p-3 border border-[var(--border-color)] bg-[var(--bg-main)] space-y-1"
+          >
+            <span class="text-[10px] text-[var(--fg-dim)] uppercase font-bold"
+              >LOCATION</span
+            >
+            <div class="text-xs text-[var(--fg-bright)] font-bold">
+              📍 {developer.location}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Skills -->
+      <section
+        id="gui-skills"
+        class="border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-5 space-y-4"
+      >
+        <div
+          class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-[var(--border-color)] pb-3"
+        >
+          <h2
+            class="text-xs sm:text-base font-bold text-[var(--fg-bright)] flex items-center gap-1.5 sm:gap-2 truncate"
+          >
+            <span class="text-[var(--accent)]">></span> ./SKILLS.SH // TECHNICAL PROFICIENCY
+          </h2>
+          <span class="text-[10px] sm:text-xs text-[var(--fg-dim)] shrink-0">[PROFICIENCY METRICS]</span
+          >
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {
+            skills.map((cat) => (
+              <div class="border border-[var(--border-color)] bg-[var(--bg-main)] p-4 space-y-3">
+                <div class="text-xs font-bold text-[var(--accent)] flex items-center gap-2 border-b border-[var(--border-color)] pb-2">
+                  <span>{cat.icon}</span>
+                  <span>{cat.category}</span>
+                </div>
+
+                <div class="space-y-2.5">
+                  {cat.skills.map((skill) => {
+                    const filledCount = Math.round(skill.level / 10);
+                    const barStr =
+                      "█".repeat(filledCount) + "░".repeat(10 - filledCount);
+                    return (
+                      <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-bold">
+                          <span class="text-[var(--fg-bright)]">
+                            {skill.name}
+                          </span>
+                          <span class="text-[var(--fg-dim)] text-[10px]">
+                            {skill.experience}
+                          </span>
+                        </div>
+                        <div class="flex items-center gap-2 text-xs">
+                          <div class="flex-1 bg-[var(--bg-card)] border border-[var(--border-color)] h-4 overflow-hidden relative flex items-center px-1">
+                            <div
+                              class="h-full bg-[var(--fg-dim)] opacity-40 absolute left-0 top-0"
+                              style={`width: ${skill.level}%`}
+                            />
+                            <span class="relative z-10 text-[10px] text-[var(--fg-bright)] font-mono">
+                              {barStr} {skill.level}%
+                            </span>
+                          </div>
+                          <span class="text-[9px] px-1 bg-[var(--border-color)] text-[var(--accent)] font-bold">
+                            {skill.tag}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <!-- Section 3: Collabs (Collaborations) -->
+      <section
+        id="gui-collabs"
+        class="border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-5 space-y-4"
+      >
+        <div
+          class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-[var(--border-color)] pb-3"
+        >
+          <h2
+            class="text-xs sm:text-base font-bold text-[var(--fg-bright)] flex items-center gap-1.5 sm:gap-2 truncate"
+          >
+            <span class="text-[var(--accent)]">></span> CAT COLLABS.MD // TEAM COLLABORATIONS
+          </h2>
+          <span class="text-[10px] sm:text-xs text-[var(--fg-dim)] shrink-0">[PARTNERSHIPS]</span>
+        </div>
+
+        <div class="space-y-4">
+          {
+            collabs.map((item) => (
+              <div class="border border-[var(--border-color)] bg-[var(--bg-main)] p-5 space-y-3 hover:border-[var(--border-active)] transition-all">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-color)] pb-2">
+                  <h3 class="text-sm font-bold text-[var(--fg-bright)] flex items-center gap-2">
+                    <span>🤝</span> {item.title}
+                  </h3>
+                  <span class="text-[10px] px-2 py-0.5 border border-[var(--border-color)] text-[var(--accent)] uppercase font-bold">
+                    {item.partnerType}
+                  </span>
+                </div>
+
+                {item.asciiLogo && (
+                  <pre class="my-2 p-2.5 bg-[var(--bg-card)] text-[10px] sm:text-xs text-[var(--fg-bright)] overflow-x-auto leading-tight select-none border border-[var(--border-color)] font-mono whitespace-pre">{item.asciiLogo}</pre>
+                )}
+
+                <div class="text-xs">
+                  <span class="text-[var(--accent)] font-bold">
+                    Partner Org:
+                  </span>{" "}
+                  <span class="text-[var(--fg-bright)] font-bold">
+                    {item.partner}
+                  </span>
+                  <span class="mx-2 text-[var(--fg-dim)]">|</span>
+                  <span class="text-[var(--accent)] font-bold">Role:</span>{" "}
+                  <span class="text-emerald-400 font-bold">{item.role}</span>
+                  <span class="mx-2 text-[var(--fg-dim)]">|</span>
+                  <span class="text-[var(--fg-dim)]">{item.period}</span>
+                </div>
+
+                <p class="text-xs text-[var(--fg-main)] leading-relaxed">
+                  {item.description}
+                </p>
+
+                <div class="space-y-1 pt-1">
+                  <span class="text-[10px] text-[var(--fg-dim)] uppercase font-bold">
+                    Key Contributions:
+                  </span>
+                  <ul class="list-disc list-inside text-xs text-[var(--fg-main)] space-y-0.5">
+                    {item.contributions.map((c) => (
+                      <li>{c}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between pt-3 border-t border-[var(--border-color)] gap-2">
+                  <div class="flex flex-wrap gap-1">
+                    {item.techStack.map((t) => (
+                      <span class="text-[10px] px-1.5 py-0.5 bg-[var(--bg-card)] text-[var(--fg-dim)] border border-[var(--border-color)]">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+
+                  {item.link && (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-xs text-[var(--accent)] hover:underline font-bold"
+                    >
+                      View Project ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      <!-- Section 4: Live GitHub Stats & Repositories -->
+      <section
+        id="gui-github"
+        class="border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-5 space-y-4"
+      >
+        <div
+          class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-[var(--border-color)] pb-3"
+        >
+          <h2
+            class="text-xs sm:text-base font-bold text-[var(--fg-bright)] flex items-center gap-1.5 sm:gap-2 truncate"
+          >
+            <span class="text-[var(--accent)]">></span> CAT GITHUB.SH // REPOSITORIES & METRICS
+          </h2>
+          <span class="text-[10px] sm:text-xs text-emerald-400 font-bold flex items-center gap-1.5 shrink-0">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            LIVE REST API
+          </span>
+        </div>
+
+        <div id="gui-gh-loading" class="text-xs text-[var(--fg-dim)] py-2 font-mono">
+          Connecting to GitHub API & caching statistics...
+        </div>
+
+        <div id="gui-gh-content" class="hidden space-y-4 font-mono">
+          <!-- Metric Counter Cards -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+            <div class="border border-[var(--border-color)] bg-[var(--bg-main)] p-2 sm:p-3 text-center">
+              <div class="text-[9px] sm:text-[10px] text-[var(--fg-dim)] font-bold truncate">TOTAL STARS ⭐</div>
+              <div id="gui-gh-stars" class="text-base sm:text-xl font-bold text-yellow-400 mt-0.5 sm:mt-1">0</div>
+            </div>
+            <div class="border border-[var(--border-color)] bg-[var(--bg-main)] p-2 sm:p-3 text-center">
+              <div class="text-[9px] sm:text-[10px] text-[var(--fg-dim)] font-bold truncate">TOTAL FORKS 🍴</div>
+              <div id="gui-gh-forks" class="text-base sm:text-xl font-bold text-cyan-400 mt-0.5 sm:mt-1">0</div>
+            </div>
+            <div class="border border-[var(--border-color)] bg-[var(--bg-main)] p-2 sm:p-3 text-center">
+              <div class="text-[9px] sm:text-[10px] text-[var(--fg-dim)] font-bold truncate">PUBLIC REPOS 📦</div>
+              <div id="gui-gh-repos" class="text-base sm:text-xl font-bold text-emerald-400 mt-0.5 sm:mt-1">0</div>
+            </div>
+            <div class="border border-[var(--border-color)] bg-[var(--bg-main)] p-2 sm:p-3 text-center">
+              <div class="text-[9px] sm:text-[10px] text-[var(--fg-dim)] font-bold truncate">FOLLOWERS 👥</div>
+              <div id="gui-gh-followers" class="text-base sm:text-xl font-bold text-purple-400 mt-0.5 sm:mt-1">0</div>
+            </div>
+          </div>
+
+          <!-- Top Languages Bar -->
+          <div class="border border-[var(--border-color)] bg-[var(--bg-main)] p-3 space-y-2">
+            <div class="text-[10px] text-[var(--fg-dim)] font-bold uppercase tracking-wider">
+              Primary Programming Languages
+            </div>
+            <div id="gui-gh-lang-list" class="flex flex-wrap gap-2 text-xs"></div>
+          </div>
+
+          <!-- Top Repositories Grid -->
+          <div class="space-y-2">
+            <div class="text-[10px] text-[var(--fg-dim)] font-bold uppercase tracking-wider">
+              Featured Repositories
+            </div>
+            <div id="gui-gh-repos-list" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5: Contact -->
+      <section
+        id="gui-contact"
+        class="border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-5 space-y-4"
+      >
+        <div
+          class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-[var(--border-color)] pb-3"
+        >
+          <h2
+            class="text-xs sm:text-base font-bold text-[var(--fg-bright)] flex items-center gap-1.5 sm:gap-2 truncate"
+          >
+            <span class="text-[var(--accent)]">></span> CONTACT // LINKS
+          </h2>
+          <span class="text-[10px] sm:text-xs text-[var(--fg-dim)] shrink-0">[REACH ME]</span>
+        </div>
+
+        <ul class="space-y-2 text-xs">
+          {
+            socialLinks.map((l) => (
+              <li class="flex items-center justify-between flex-wrap gap-1 border-b border-[var(--border-color)]/40 pb-1.5">
+                <span class="text-[var(--fg-dim)] font-bold">{l.icon} {l.label}:</span>
+                <a
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-sky-400 font-bold hover:underline break-all"
+                >
+                  {l.url.replace(/^https?:\/\//, "")} ↗
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { playSuccessSound } from "../utils/sound";
+  import { fetchGitHubStats } from "../utils/github";
+
+  document.addEventListener("DOMContentLoaded", () => {
+    // Fetch and populate live GitHub stats
+    initGitHubStats();
+
+    async function initGitHubStats() {
+      const loadingEl = document.getElementById("gui-gh-loading");
+      const contentEl = document.getElementById("gui-gh-content");
+      const starsEl = document.getElementById("gui-gh-stars");
+      const forksEl = document.getElementById("gui-gh-forks");
+      const reposEl = document.getElementById("gui-gh-repos");
+      const followersEl = document.getElementById("gui-gh-followers");
+      const langListEl = document.getElementById("gui-gh-lang-list");
+      const reposListEl = document.getElementById("gui-gh-repos-list");
+
+      const stats = await fetchGitHubStats();
+      if (!stats) {
+        if (loadingEl) loadingEl.textContent = "GitHub metrics temporarily offline / rate-limited.";
+        return;
+      }
+
+      if (loadingEl) loadingEl.classList.add("hidden");
+      if (contentEl) contentEl.classList.remove("hidden");
+
+      if (starsEl) starsEl.textContent = String(stats.totalStars);
+      if (forksEl) forksEl.textContent = String(stats.totalForks);
+      if (reposEl) reposEl.textContent = String(stats.publicRepos);
+      if (followersEl) followersEl.textContent = String(stats.followers);
+
+      if (langListEl) {
+        langListEl.innerHTML = "";
+        stats.topLanguages.forEach((lang) => {
+          const badge = document.createElement("span");
+          badge.className = "px-2 py-1 bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--fg-bright)] flex items-center gap-1.5";
+          badge.innerHTML = `<span class="text-[var(--accent)] font-bold">${lang.name}</span> <span class="text-[var(--fg-dim)] text-[10px]">(${lang.percentage}%)</span>`;
+          langListEl.appendChild(badge);
+        });
+      }
+
+      if (reposListEl) {
+        reposListEl.innerHTML = "";
+        stats.topRepos.forEach((repo) => {
+          const card = document.createElement("a");
+          card.href = repo.url;
+          card.target = "_blank";
+          card.rel = "noopener noreferrer";
+          card.className = "border border-[var(--border-color)] bg-[var(--bg-main)] p-3 hover:border-[var(--accent)] transition-all flex flex-col justify-between block group";
+          card.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between gap-2 border-b border-[var(--border-color)] pb-1.5 mb-1.5">
+                <span class="text-xs font-bold text-[var(--fg-bright)] group-hover:text-[var(--accent)] truncate">📦 ${repo.name}</span>
+                <span class="text-[10px] text-[var(--accent)] font-bold shrink-0">⭐ ${repo.stars}</span>
+              </div>
+              <p class="text-[11px] text-[var(--fg-dim)] line-clamp-2 leading-tight">${repo.description}</p>
+            </div>
+            <div class="flex flex-wrap items-center justify-between text-[10px] text-[var(--fg-dim)] pt-2 mt-2 border-t border-[var(--border-color)] gap-1">
+              <span class="text-emerald-400 font-bold">${repo.language}</span>
+              <span class="truncate">Updated ${repo.updatedAt} ↗</span>
+            </div>
+          `;
+          reposListEl.appendChild(card);
+        });
+      }
+    }
+
+    const bindLaunchBtn = (id: string, callback: () => void) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      let lastTrigger = 0;
+      const handler = () => {
+        const now = Date.now();
+        if (now - lastTrigger < 300) return; // Prevent double trigger
+        lastTrigger = now;
+        callback();
+      };
+      el.addEventListener("click", handler);
+      el.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        handler();
+      }, { passive: false });
+    };
+
+    bindLaunchBtn("gui-launch-pong", () => {
+      const win = window as unknown as { togglePong?: (f?: boolean) => void };
+      if (win.togglePong) {
+        win.togglePong(true);
+        playSuccessSound();
+      }
+    });
+
+    bindLaunchBtn("gui-launch-snake", () => {
+      const win = window as unknown as { toggleSnake?: (f?: boolean) => void };
+      if (win.toggleSnake) {
+        win.toggleSnake(true);
+        playSuccessSound();
+      }
+    });
+
+    bindLaunchBtn("gui-launch-radio", () => {
+      const win = window as unknown as { radioEngine?: { toggleModal: (f?: boolean) => void } };
+      if (win.radioEngine) {
+        win.radioEngine.toggleModal(true);
+        playSuccessSound();
+      }
+    });
+  });
+</script>
