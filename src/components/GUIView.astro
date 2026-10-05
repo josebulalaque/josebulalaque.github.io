@@ -4,7 +4,7 @@ import Neofetch from "./Neofetch.astro";
 import SpotifyWidget from "./SpotifyWidget.astro";
 import GamesWidget from "./GamesWidget.astro";
 
-const { developer, skills, collabs } = PORTFOLIO_DATA;
+const { developer, skills, collabs, certifications, education } = PORTFOLIO_DATA;
 const socialLinks = getSocialLinks();
 ---
 
@@ -45,7 +45,13 @@ const socialLinks = getSocialLinks();
           href="#gui-collabs"
           class="gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-[var(--fg-bright)] transition-colors"
         >
-          <span class="text-purple-400">🤝</span> collabs.md (Collabs)
+          <span class="text-purple-400">💼</span> experience.md (Experience)
+        </a>
+        <a
+          href="#gui-certs"
+          class="gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-[var(--fg-bright)] transition-colors"
+        >
+          <span class="text-orange-400">🎓</span> certs.txt (Certifications)
         </a>
         <a
           href="#gui-github"
@@ -98,7 +104,7 @@ const socialLinks = getSocialLinks();
           CONTENT SPEC
         </div>
         <div class="flex justify-between text-[var(--fg-main)]">
-          <span>Active Collabs:</span>
+          <span>Roles Held:</span>
           <span class="font-bold text-[var(--fg-bright)]">{collabs.length}</span
           >
         </div>
@@ -244,7 +250,7 @@ const socialLinks = getSocialLinks();
         </div>
       </section>
 
-      <!-- Section 3: Collabs (Collaborations) -->
+      <!-- Section 3: Work experience -->
       <section
         id="gui-collabs"
         class="border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-5 space-y-4"
@@ -255,9 +261,9 @@ const socialLinks = getSocialLinks();
           <h2
             class="text-xs sm:text-base font-bold text-[var(--fg-bright)] flex items-center gap-1.5 sm:gap-2 truncate"
           >
-            <span class="text-[var(--accent)]">></span> CAT COLLABS.MD // TEAM COLLABORATIONS
+            <span class="text-[var(--accent)]">></span> CAT EXPERIENCE.MD // WORK EXPERIENCE
           </h2>
-          <span class="text-[10px] sm:text-xs text-[var(--fg-dim)] shrink-0">[PARTNERSHIPS]</span>
+          <span class="text-[10px] sm:text-xs text-[var(--fg-dim)] shrink-0">[CAREER LOG]</span>
         </div>
 
         <div class="space-y-4">
@@ -266,10 +272,10 @@ const socialLinks = getSocialLinks();
               <div class="border border-[var(--border-color)] bg-[var(--bg-main)] p-5 space-y-3 hover:border-[var(--border-active)] transition-all">
                 <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--border-color)] pb-2">
                   <h3 class="text-sm font-bold text-[var(--fg-bright)] flex items-center gap-2">
-                    <span>🤝</span> {item.title}
+                    <span>💼</span> {item.title}
                   </h3>
                   <span class="text-[10px] px-2 py-0.5 border border-[var(--border-color)] text-[var(--accent)] uppercase font-bold">
-                    {item.partnerType}
+                    {item.period}
                   </span>
                 </div>
 
@@ -277,19 +283,9 @@ const socialLinks = getSocialLinks();
                   <pre class="my-2 p-2.5 bg-[var(--bg-card)] text-[10px] sm:text-xs text-[var(--fg-bright)] overflow-x-auto leading-tight select-none border border-[var(--border-color)] font-mono whitespace-pre">{item.asciiLogo}</pre>
                 )}
 
-                <div class="text-xs">
-                  <span class="text-[var(--accent)] font-bold">
-                    Partner Org:
-                  </span>{" "}
-                  <span class="text-[var(--fg-bright)] font-bold">
-                    {item.partner}
-                  </span>
-                  <span class="mx-2 text-[var(--fg-dim)]">|</span>
-                  <span class="text-[var(--accent)] font-bold">Role:</span>{" "}
-                  <span class="text-emerald-400 font-bold">{item.role}</span>
-                  <span class="mx-2 text-[var(--fg-dim)]">|</span>
-                  <span class="text-[var(--fg-dim)]">{item.period}</span>
-                </div>
+                {item.partner && (
+                  <div class="text-xs text-[var(--fg-bright)] font-bold">{item.partner}</div>
+                )}
 
                 <p class="text-xs text-[var(--fg-main)] leading-relaxed">
                   {item.description}
@@ -329,6 +325,57 @@ const socialLinks = getSocialLinks();
               </div>
             ))
           }
+        </div>
+      </section>
+
+      <!-- Section 3b: Certifications & education -->
+      <section
+        id="gui-certs"
+        class="border border-[var(--border-color)] bg-[var(--bg-card)] p-4 sm:p-5 space-y-4"
+      >
+        <div
+          class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-b border-[var(--border-color)] pb-3"
+        >
+          <h2
+            class="text-xs sm:text-base font-bold text-[var(--fg-bright)] flex items-center gap-1.5 sm:gap-2 truncate"
+          >
+            <span class="text-[var(--accent)]">></span> CAT CERTS.TXT // CERTIFICATIONS
+          </h2>
+          <span class="text-[10px] sm:text-xs text-[var(--fg-dim)] shrink-0">[{certifications.length} EARNED]</span>
+        </div>
+
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {
+            certifications.map((c) => (
+              <li class="border border-[var(--border-color)] bg-[var(--bg-main)] p-3 space-y-1 hover:border-[var(--border-active)] transition-colors">
+                <div class="flex items-start justify-between gap-2">
+                  <span class="text-xs font-bold text-[var(--fg-bright)]">{c.name}</span>
+                  <span class="text-[10px] text-[var(--accent)] font-bold shrink-0">{c.date}</span>
+                </div>
+                <div class="text-[10px] text-[var(--fg-dim)]">
+                  {c.issuer}
+                  {c.code && <span> // {c.code}</span>}
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+
+        <div class="space-y-2 pt-2">
+          <div class="text-[10px] text-[var(--fg-dim)] font-bold uppercase tracking-wider">Education</div>
+          <ul class="space-y-1.5 text-xs">
+            {
+              education.map((e) => (
+                <li class="flex flex-wrap items-center justify-between gap-1 border-b border-[var(--border-color)]/40 pb-1.5">
+                  <span>
+                    <span class="text-[var(--fg-bright)] font-bold">{e.name}</span>
+                    <span class="text-[var(--fg-dim)]"> // {e.school}</span>
+                  </span>
+                  <span class="text-[var(--accent)] font-bold">{e.year}</span>
+                </li>
+              ))
+            }
+          </ul>
         </div>
       </section>
 

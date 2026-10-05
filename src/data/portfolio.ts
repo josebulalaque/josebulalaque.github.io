@@ -1,7 +1,7 @@
 export interface CollabItem {
   id: string;
   partner: string;
-  partnerType: "Open Source Org" | "Startup" | "Tech Studio" | "Research Team" | "Personal" | "Employer";
+  partnerType: "Open Source Org" | "Startup" | "Tech Studio" | "Research Team" | "Personal" | "Employment";
   title: string;
   role: string;
   period: string;
@@ -30,28 +30,41 @@ export type Max8Colors =
   | [string, string, string, string, string, string, string]
   | [string, string, string, string, string, string, string, string];
 
+export interface Certification {
+  name: string;
+  code?: string;
+  issuer: string;
+  date: string;
+}
+
+export interface EducationItem {
+  name: string;
+  school: string;
+  year: string;
+}
+
 // ---------------------------------------------------------------------------
-// Everything shown on the site comes from this file. Lines marked TODO are
-// placeholders: replace them with your own details.
+// Everything shown on the site comes from this file.
+// Source: CV (March 2023) and letter of intent (2023), plus certifications
+// earned since. Personal details from the CV are deliberately left out, and
+// employers are not named.
 // ---------------------------------------------------------------------------
 
 export const PORTFOLIO_DATA = {
   developer: {
     name: "Jose Bulalaque",
     handle: "josebulalaque",
-    title: "Systems Engineer & Server Administrator",
+    title: "Senior Systems Engineer",
     alias: "jose@srv-01",
     github: "https://github.com/josebulalaque",
-    // TODO: add your LinkedIn profile URL, or leave empty to hide it.
-    linkedin: "",
+    linkedin: "https://www.linkedin.com/in/josebulalaque/",
     // Leave empty to hide.
     twitter: "",
-    // TODO: your city and timezone, e.g. "Perth, AU // UTC+8".
-    location: "TODO: City, Country // UTC+8",
+    location: "Philippines // UTC+8",
     status: " ONLINE // ALL SERVICES NOMINAL",
-    // Shown in the GUI dashboard. TODO: set your real years of experience.
-    focus: "Linux & Windows Servers, Virtualisation & Automation",
-    experience: "TODO Years",
+    // Shown in the GUI dashboard.
+    focus: "VMware, Windows & Linux Infrastructure, Automation with Ansible & PowerShell",
+    experience: "15+ Years",
     CLI_EMOJI: "🖥️",
     palette: [
       "#0f0f0f",
@@ -63,9 +76,8 @@ export const PORTFOLIO_DATA = {
       "#06b6d4",
       "#f8fafc",
     ],
-    // TODO: rewrite in your own words.
-    bio: "Systems engineer and server administrator. I build and look after Linux and Windows servers, physical and virtual, from first install through patching, backups and the 2 a.m. alert. I lean towards DevOps habits: configuration lives in Git, changes go through Ansible or a script rather than by hand, and anything I do twice gets automated.",
-    quote: '"Hope is not a strategy." – Traditional SRE saying',
+    bio: "Infrastructure engineer with 15+ years in systems implementation and administration, from first-line support to senior systems engineering. I plan, build and run VMware, Windows and Linux infrastructure, automate it with Ansible and PowerShell, and deploy monitoring with Zabbix, Grafana and the TICK stack. I always aim to do more with less: automating repetitive work removes human error and frees the team for the work that matters. I also run regular knowledge-sharing sessions so the whole team levels up.",
+    quote: '"Developer by passion, infrastructure engineer by profession."',
     asciiBanner: `
      _   ___   ____   _____
     | | / _ \\ / ___| | ____|
@@ -78,96 +90,190 @@ export const PORTFOLIO_DATA = {
 | |_) || |_| || |___  / ___ \\ | |___  / ___ \\ | |_| || |_| || |___
 |____/  \\___/ |_____|/_/   \\_\\|_____|/_/   \\_\\ \\__\\_\\ \\___/ |_____|
 `,
-    // Shown by `neofetch`. TODO: swap in your real daily driver if you like.
+    // Shown by `neofetch`.
     specs: {
-      OS: "RHEL 9 / Ubuntu 24.04 LTS / Windows Server 2022",
+      OS: "Windows Server / RHEL / Ubuntu / VMware ESXi",
       Kernel: "6.x LTS",
-      Uptime: "99.99% and counting",
-      Shell: "bash 5.2 / PowerShell 7",
+      Uptime: "15+ years and counting",
+      Shell: "PowerShell 7 / bash 5.2",
       Terminal: "Web-TUI Astro",
       WM: "tmux",
-      Editor: "Vim / VS Code",
+      Editor: "VS Code / Vim",
       CPU: "Whatever the hypervisor gives me",
       Memory: "Never enough",
     },
   },
 
-  // TODO: adjust the levels (0-100) and years to match your experience.
+  // Levels are self-assessed; years are counted from when each tool first appears in the CV.
   skills: [
     {
-      category: "Operating Systems",
-      icon: "🐧",
+      category: "Virtualisation (VMware)",
+      icon: "🗄️",
       skills: [
-        { name: "Linux (RHEL / Rocky)", level: 85, experience: "", tag: "PRO" },
-        { name: "Linux (Ubuntu / Debian)", level: 85, experience: "", tag: "PRO" },
-        { name: "Windows Server", level: 80, experience: "", tag: "ADVANCED" },
-        { name: "Active Directory / DNS / DHCP", level: 75, experience: "", tag: "ADVANCED" },
+        { name: "vSphere / ESXi / vCenter", level: 92, experience: "13 yrs", tag: "EXPERT" },
+        { name: "vSAN", level: 80, experience: "5 yrs", tag: "ADVANCED" },
+        { name: "NSX / Network Virtualization", level: 75, experience: "3 yrs", tag: "ADVANCED" },
+        { name: "Horizon (VDI)", level: 75, experience: "8 yrs", tag: "ADVANCED" },
+        { name: "PowerCLI", level: 88, experience: "8 yrs", tag: "PRO" },
       ],
     },
     {
-      category: "Virtualisation & Storage",
-      icon: "🗄️",
+      category: "Windows & Linux Systems",
+      icon: "🐧",
       skills: [
-        { name: "VMware vSphere", level: 80, experience: "", tag: "ADVANCED" },
-        { name: "Proxmox VE", level: 75, experience: "", tag: "ADVANCED" },
-        { name: "Hyper-V", level: 65, experience: "", tag: "INTERMEDIATE" },
-        { name: "Docker / Containers", level: 70, experience: "", tag: "INTERMEDIATE" },
-        { name: "Backup & Recovery", level: 80, experience: "", tag: "ADVANCED" },
+        { name: "Windows Server", level: 92, experience: "15 yrs", tag: "EXPERT" },
+        { name: "Active Directory / DNS / DHCP / NPS", level: 92, experience: "15 yrs", tag: "EXPERT" },
+        { name: "MDT & DFS", level: 88, experience: "15 yrs", tag: "PRO" },
+        { name: "Linux (RHEL / Ubuntu)", level: 85, experience: "7 yrs", tag: "PRO" },
       ],
     },
     {
       category: "Automation & DevOps",
       icon: "⚙️",
       skills: [
-        { name: "Ansible", level: 80, experience: "", tag: "ADVANCED" },
-        { name: "Bash", level: 85, experience: "", tag: "PRO" },
-        { name: "PowerShell", level: 70, experience: "", tag: "INTERMEDIATE" },
-        { name: "Python", level: 65, experience: "", tag: "INTERMEDIATE" },
-        { name: "Git & CI/CD", level: 75, experience: "", tag: "ADVANCED" },
+        { name: "PowerShell", level: 92, experience: "13 yrs", tag: "EXPERT" },
+        { name: "Ansible", level: 85, experience: "6 yrs", tag: "PRO" },
+        { name: "Bash", level: 80, experience: "7 yrs", tag: "ADVANCED" },
+        { name: "Azure DevOps Pipelines / Git", level: 75, experience: "8 yrs", tag: "ADVANCED" },
+        { name: "Terraform", level: 60, experience: "POC", tag: "INTERMEDIATE" },
       ],
     },
     {
-      category: "Operations",
+      category: "Monitoring, Cloud & Network",
       icon: "📈",
       skills: [
-        { name: "Monitoring & Alerting", level: 80, experience: "", tag: "ADVANCED" },
-        { name: "Patch Management", level: 85, experience: "", tag: "PRO" },
-        { name: "Incident Response", level: 75, experience: "", tag: "ADVANCED" },
-        { name: "Networking Fundamentals", level: 70, experience: "", tag: "INTERMEDIATE" },
+        { name: "Zabbix / Grafana / TICK", level: 85, experience: "6 yrs", tag: "PRO" },
+        { name: "Graylog / ELK", level: 75, experience: "6 yrs", tag: "ADVANCED" },
+        { name: "NetBox / Passbolt", level: 75, experience: "6 yrs", tag: "ADVANCED" },
+        { name: "AWS / Azure", level: 60, experience: "6 yrs", tag: "INTERMEDIATE" },
+        { name: "Networking (CCNA)", level: 70, experience: "6 yrs", tag: "INTERMEDIATE" },
       ],
     },
   ] as SkillCategory[],
 
-  // Shown by `collabs` and in the GUI. TODO: replace with real projects or roles.
+  // Work experience, newest first. Shown by `experience` and in the GUI.
   collabs: [
     {
-      id: "projects-in-progress",
-      partner: "Personal",
-      partnerType: "Personal",
-      title: "Project write-ups",
-      role: "Systems Engineer",
-      period: "2026 - PRESENT",
-      status: "ONGOING",
+      id: "senior-systems-engineer",
+      partner: "",
+      partnerType: "Employment",
+      title: "Senior Systems Engineer",
+      role: "Senior Systems Engineer",
+      period: "Dec 2020 - Apr 2023",
+      status: "COMPLETED",
       description:
-        "Write-ups of server builds, automation and homelab work are in progress. Until they're up, run `repos` to see my public GitHub repositories.",
-      contributions: ["TODO: add your first project here."],
-      techStack: ["Linux", "Ansible", "Bash"],
-      link: "https://github.com/josebulalaque",
-      asciiLogo: `+----------------------+
-|  BUILD IN PROGRESS   |
-|  [STATUS: ONGOING]   |
-+----------------------+`,
+        "Provisioning, support, monitoring and management of back-office infrastructure services, with third-level support for onsite services.",
+      contributions: [
+        "Automated Linux patching with Ansible: a dynamic VMware inventory finds servers by vCenter tag, snapshots them, then runs distro-specific updates.",
+        "Built MDT with DFS replication across 3 sites for weekly onboarding of 200+ laptops.",
+        "Wrote PowerShell and PowerCLI tooling for AD onboarding, bulk live VM migration, ESXi provisioning, VM inventory to CMDB, DHCP lease clean-up and server health-check reports.",
+        "Deployed Filebeat and Winlogbeat agents with Ansible, and stood up NetBox, Grafana, Graylog, Zabbix and Passbolt.",
+        "Planned and built new back-office sites: AD, DNS, DHCP, NPS, MDT and VMware vSAN.",
+        "Ran knowledge-sharing sessions on DNS, Active Directory, VMware and PowerShell for the helpdesk team.",
+      ],
+      techStack: ["VMware vSphere", "vSAN", "Ansible", "PowerShell", "Bash", "Windows Server", "Linux", "Zabbix", "Grafana"],
+    },
+    {
+      id: "infrastructure-engineer",
+      partner: "",
+      partnerType: "Employment",
+      title: "Infrastructure Engineer",
+      role: "Infrastructure Engineer",
+      period: "May 2018 - Nov 2020",
+      status: "COMPLETED",
+      description:
+        "Remote provisioning, support and management of servers and virtualisation infrastructure for an international organisation, covering support outside its home-office hours.",
+      contributions: [
+        "Cut server build time from 3 hours to 30 minutes by moving scripts into Bitbucket and running them through Azure DevOps pipelines with on-premises agents.",
+        "Wrote a PowerShell build script that talks to IPAM, the password manager, vCenter and Active Directory; used it to build 1,200+ VMs.",
+        "Created a VMware content library spanning 5 vCenters so templates stay identical everywhere.",
+        "Evaluated Terraform with a two-tier AWS web application proof of concept and presented it at an internal global learning event.",
+        "Deployed PRTG to monitor latency to VDI services.",
+      ],
+      techStack: ["VMware vSphere", "PowerShell", "Azure DevOps", "Bitbucket", "Terraform", "AWS", "PRTG"],
+    },
+    {
+      id: "systems-engineer",
+      partner: "",
+      partnerType: "Employment",
+      title: "Systems Engineer",
+      role: "Systems Engineer",
+      period: "May 2013 - Apr 2018",
+      status: "COMPLETED",
+      description:
+        "Planned, implemented and maintained server infrastructure for a company and its subsidiaries, with third-level support for mission-critical systems.",
+      contributions: [
+        "Deployed VMware vSphere 5.5 on HP ProLiant servers with EMC VNXe storage.",
+        "Upgraded Exchange Server 2007 to 2013 for 500+ mailboxes.",
+        "Implemented DFS and redirected Documents folders for 1,000+ user accounts.",
+        "Managed Veritas NetBackup and Symantec Enterprise Vault, and deployed Synology and Seagate NAS for backups.",
+        "Supervised second-level support and trained L1 and L2 staff.",
+      ],
+      techStack: ["VMware vSphere", "EMC VNXe", "Windows Server", "Exchange", "DFS", "NetBackup"],
+    },
+    {
+      id: "technical-support-engineer",
+      partner: "",
+      partnerType: "Employment",
+      title: "Technical Support Engineer",
+      role: "Technical Support Engineer",
+      period: "Mar 2011 - May 2013",
+      status: "COMPLETED",
+      description:
+        "First-level support by email, chat and phone, escalating issues beyond first-line scope to the right teams.",
+      contributions: [
+        "Led a Windows 7 rollout to 1,000+ workstations with MDT within a 3-month deadline.",
+        "Ran hardware and software inventory with MAP for license purchasing and renewal.",
+        "Only member of the team granted Domain Admin rights; promoted to Systems Engineer.",
+      ],
+      techStack: ["MDT", "Windows 7", "Active Directory", "MAP"],
+    },
+    {
+      id: "technical-support-representative",
+      partner: "",
+      partnerType: "Employment",
+      title: "Technical Support Representative",
+      role: "Technical Support Representative",
+      period: "Nov 2009 - Nov 2010",
+      status: "COMPLETED",
+      description:
+        "Phone support for home customers of consumer PCs and of fibre broadband, IPTV and VoIP services.",
+      contributions: ["Diagnosed and resolved hardware, software and home-network issues over the phone."],
+      techStack: ["Windows", "Home Networking", "VoIP"],
     },
   ] as CollabItem[],
+
+  // Newest first. Shown by `certs` and in the GUI.
+  certifications: [
+    { name: "LPIC-2: Linux Engineer", issuer: "Linux Professional Institute", date: "Sep 2024" },
+    { name: "VMware Certified Professional - Network Virtualization 2023", code: "VCP-NV 2023", issuer: "VMware", date: "Nov 2023" },
+    { name: "AWS Certified Cloud Practitioner", code: "CLF-C01", issuer: "Amazon Web Services", date: "Jan 2023" },
+    { name: "VMware Certified Professional 7 - Data Center Virtualization", code: "2V0-21.20", issuer: "VMware", date: "Sep 2022" },
+    { name: "Microsoft Azure Fundamentals", code: "AZ-900", issuer: "Microsoft", date: "Oct 2020" },
+    { name: "Cisco Certified Network Associate", code: "200-301", issuer: "Cisco", date: "Sep 2020" },
+    { name: "CompTIA Linux+ (Powered by LPI)", code: "LX0-103 / LX0-104", issuer: "CompTIA", date: "Sep 2019" },
+    { name: "VMware Certified Professional 7 - Desktop and Mobility", code: "2V0-751", issuer: "VMware", date: "Nov 2018" },
+    { name: "VMware Certified Professional 6 - Data Center Virtualization", code: "2V0-621", issuer: "VMware", date: "Nov 2016" },
+    { name: "MCSA: Windows Server 2012 R2", code: "70-417", issuer: "Microsoft", date: "Apr 2016" },
+    { name: "MCSA: Windows Server 2008", code: "70-640 / 70-642 / 70-646", issuer: "Microsoft", date: "Jul 2013" },
+    { name: "MCTS: Windows 7, Configuring", code: "70-680", issuer: "Microsoft", date: "Dec 2011" },
+    { name: "CompTIA A+", code: "220-701 / 220-702", issuer: "CompTIA", date: "Dec 2010" },
+  ] as Certification[],
+
+  education: [
+    { name: "Bachelor of Science in Information Technology", school: "Informatics College Northgate", year: "2016" },
+    { name: "Advanced Diploma in Computer Studies, Major in Multimedia", school: "Informatics Computer Institute", year: "2009" },
+  ] as EducationItem[],
 
   commands: [
     { name: "help", desc: "List all available terminal commands", usage: "help" },
     { name: "about", desc: "Display bio and summary", usage: "about [or cat bio.txt]" },
+    { name: "experience", desc: "Display work experience", usage: "experience [or cat experience.md]" },
     { name: "skills", desc: "Display skill proficiency meters", usage: "skills [or cat skills.sh]" },
-    { name: "collabs", desc: "Display projects and roles", usage: "collabs [or cat collabs.md]" },
+    { name: "certs", desc: "Display certifications and education", usage: "certs [or cat certs.txt]" },
     { name: "neofetch", desc: "Display ASCII banner & system specs", usage: "neofetch" },
     { name: "contact", desc: "Display contact links", usage: "contact" },
-    { name: "links", desc: "Display links to GitHub and other profiles", usage: "links [or socials, urls]" },
+    { name: "links", desc: "Display links to GitHub and LinkedIn", usage: "links [or socials, urls]" },
     { name: "theme", desc: "Switch colour theme", usage: "theme <green|amber|cyan|dracula|mono|cappuccino>" },
     { name: "pong", desc: "Play retro 1972 arcade Pong vs CPU", usage: "pong [or game, play, ./pong.sh]" },
     { name: "snake", desc: "Play classic retro Snake", usage: "snake [or playsnake, ./snake.sh]" },
