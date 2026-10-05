@@ -1,0 +1,105 @@
+---
+import Base from '../../layouts/Base.astro';
+import { site } from '../../data/site';
+import { getProjects, formatDate } from '../../lib/content';
+
+const projects = await getProjects();
+---
+
+<Base title="Projects" description={`Projects by ${site.name}.`} section="green">
+  <div class="wrap">
+    <header class="page-head">
+      <h1>Projects</h1>
+      <p>Network automation, infrastructure tooling and things I've built along the way.</p>
+    </header>
+
+    {
+      projects.length === 0 ? (
+        <div class="pending" data-color="green">
+          <span class="jack" aria-hidden="true" />
+          <div>
+            <h2>In progress</h2>
+            <p>
+              Write-ups are being prepared. Until they're up, my public code is on{' '}
+              <a href={site.links.github}>GitHub</a>.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <ul class="projects">
+          {projects.map((p) => (
+            <li>
+              <h2>{p.data.title}</h2>
+              <p class="muted">{formatDate(p.data.date)}</p>
+              <p>{p.data.summary}</p>
+              <p class="links">
+                {p.data.url && <a href={p.data.url}>Visit</a>}
+                {p.data.repo && <a href={p.data.repo}>Source code</a>}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</Base>
+
+<style>
+  .pending {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    max-width: 40rem;
+    padding: 1.5rem;
+    border: 2px dashed var(--rule);
+    border-radius: 6px;
+  }
+
+  /* An empty port: nothing patched in yet. */
+  .jack {
+    flex: none;
+    width: 4rem;
+    aspect-ratio: 1.15;
+    background: var(--panel);
+    clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 72%, 72% 100%, 28% 100%, 28% 72%, 0 72%);
+  }
+
+  .pending h2 {
+    margin: 0 0 0.4rem;
+    font-size: 1.75rem;
+  }
+
+  .pending p {
+    margin: 0;
+  }
+
+  .projects {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-width: var(--measure);
+  }
+
+  .projects li {
+    padding-block: 1.5rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .projects h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.9rem;
+  }
+
+  .links {
+    display: flex;
+    gap: 1.25rem;
+    margin: 0;
+  }
+
+  @media (max-width: 30rem) {
+    .pending {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+</style>

@@ -1,0 +1,19 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostList from '../../components/PostList.astro';
+import { site } from '../../data/site';
+import { getPosts } from '../../lib/content';
+
+const posts = await getPosts();
+---
+
+<Base title="Writing" description={`Notes and write-ups by ${site.name}.`} section="blue">
+  <div class="wrap">
+    <header class="page-head">
+      <h1>Writing</h1>
+      <p>Notes on networking, automation and running infrastructure. <a href="/rss.xml">Subscribe by RSS</a>.</p>
+    </header>
+
+    {posts.length > 0 ? <PostList posts={posts} /> : <p class="muted">No posts yet. The first one is on its way.</p>}
+  </div>
+</Base>

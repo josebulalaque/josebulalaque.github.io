@@ -1,0 +1,93 @@
+---
+import Base from '../layouts/Base.astro';
+import PatchPanel from '../components/PatchPanel.astro';
+import PostList from '../components/PostList.astro';
+import { site } from '../data/site';
+import { getPosts } from '../lib/content';
+
+const recent = (await getPosts()).slice(0, 3);
+---
+
+<Base>
+  <section class="hero wrap">
+    <h1>{site.name}</h1>
+    <p class="role">{site.role}</p>
+    <PatchPanel />
+  </section>
+
+  <section id="about" class="wrap about" data-color="orange">
+    <span class="cable tab" aria-hidden="true"></span>
+    <h2>About</h2>
+    <div class="measure">
+      <!-- TODO: replace these paragraphs with your own words. -->
+      <p>
+        I design, build and look after networks, and I write the automation that keeps them
+        consistent. Most days that means routing and switching, firewalls, and keeping the source of
+        truth honest, with Ansible and Python doing the repetitive parts.
+      </p>
+      <p>
+        On the DevOps side, I care about treating infrastructure like code: version control, review,
+        pipelines and changes you can roll back. If a task has to be done twice, I'd rather script it
+        once.
+      </p>
+    </div>
+
+    <h3>Off the clock</h3>
+    <!-- TODO: a few things about you outside work. -->
+    <ul class="measure off-clock">
+      <li>TODO: a hobby or interest</li>
+      <li>TODO: something you're learning</li>
+      <li>TODO: where you're based, or something you enjoy</li>
+    </ul>
+  </section>
+
+  {
+    recent.length > 0 && (
+      <section class="wrap" data-color="blue">
+        <span class="cable tab" aria-hidden="true" />
+        <h2>Recent writing</h2>
+        <PostList posts={recent} />
+        <p class="more">
+          <a href="/blog/">All writing</a>
+        </p>
+      </section>
+    )
+  }
+</Base>
+
+<style>
+  .hero {
+    padding-block: clamp(2.5rem, 9vw, 6rem) 1rem;
+  }
+
+  .role {
+    font-size: clamp(1.2rem, 3vw, 1.5rem);
+    color: var(--muted);
+    margin: 1rem 0 clamp(2rem, 6vw, 3.5rem);
+  }
+
+  .about {
+    padding-top: 2rem;
+  }
+
+  .tab {
+    width: 4rem;
+    margin-top: 3rem;
+  }
+
+  .tab + h2 {
+    margin-top: 1rem;
+  }
+
+  .off-clock {
+    padding-left: 1.2rem;
+  }
+
+  .off-clock li::marker {
+    color: var(--c);
+  }
+
+  .more {
+    margin-top: 1.5rem;
+  }
+</style>
