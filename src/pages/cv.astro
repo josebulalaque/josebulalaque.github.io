@@ -4,8 +4,8 @@ import { site } from '../data/site';
 import { cv } from '../data/cv';
 ---
 
-<Base title="CV" description={`CV of ${site.name}, ${site.role.toLowerCase()}.`} section="brown">
-  <div class="wrap cv" data-color="brown">
+<Base title="CV" description={`CV of ${site.name}, ${site.role.toLowerCase()}.`}>
+  <div class="wrap cv">
     <header class="page-head">
       <h1>CV</h1>
       <p class="print-only contact">
@@ -105,15 +105,15 @@ import { cv } from '../data/cv';
   }
 
   .print:hover {
-    border-color: var(--c);
+    border-color: var(--muted);
   }
 
-  /* Jobs run in order along a brown cable. */
+  /* Jobs in order, newest first, each pinned with a dot of label tape. */
   .timeline {
     list-style: none;
     margin: 0;
     padding: 0 0 0 1.5rem;
-    border-left: 4px solid var(--c);
+    border-left: 3px solid var(--ink);
   }
 
   .timeline > li {
@@ -124,13 +124,13 @@ import { cv } from '../data/cv';
   .timeline > li::before {
     content: '';
     position: absolute;
-    left: calc(-1.5rem - 8px);
-    top: 0.45rem;
-    width: 12px;
-    height: 12px;
+    left: calc(-1.5rem - 8.5px);
+    top: 0.4rem;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
-    background: var(--bg);
-    border: 3px solid var(--c);
+    background: var(--tape);
+    border: 3px solid var(--ink);
   }
 
   .when {
@@ -145,8 +145,8 @@ import { cv } from '../data/cv';
 
   .org {
     margin: 0.15rem 0 0.6rem;
-    color: var(--c-text);
-    font-weight: 600;
+    color: var(--muted);
+    font-weight: 700;
   }
 
   .timeline ul {
@@ -160,7 +160,7 @@ import { cv } from '../data/cv';
 
   .skills div {
     display: grid;
-    grid-template-columns: 9rem 1fr;
+    grid-template-columns: 11.5rem 1fr;
     gap: 1rem;
     padding-block: 0.6rem;
     border-top: 1px solid var(--rule);
@@ -196,8 +196,7 @@ import { cv } from '../data/cv';
       --ink: #000;
       --muted: #333;
       --rule: #bbb;
-      --c: #555;
-      --c-text: #000;
+      --tape: #fff;
     }
 
     :global(body) {
@@ -216,11 +215,11 @@ import { cv } from '../data/cv';
     }
 
     h1 {
-      font-size: 30pt;
+      font-size: 26pt;
     }
 
     h2 {
-      font-size: 16pt;
+      font-size: 14pt;
       margin-block: 1.2rem 0.5rem;
     }
 

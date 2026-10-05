@@ -4,10 +4,10 @@
 export const site = {
   name: 'Jose Bulalaque',
   // TODO: one line that sits under your name on the home page.
-  role: 'Network and infrastructure engineer',
+  role: 'Systems engineer and server administrator',
   // TODO: used for search results and link previews. Keep it under ~160 characters.
   description:
-    'Jose Bulalaque is a network and infrastructure engineer working on automation, DevOps tooling and the networks underneath it all.',
+    'Jose Bulalaque is a systems engineer and server administrator who builds, runs and automates the Linux and Windows servers that services depend on.',
   url: 'https://josebulalaque.github.io',
   locale: 'en-AU',
   links: {
@@ -17,12 +17,10 @@ export const site = {
   },
 };
 
-// The four sections, each wired to one T568B pair colour.
+// The four sections, mounted as servers in the home page rack, top to bottom.
 export const sections = [
-  { href: '/#about', label: 'About', color: 'orange' },
-  { href: '/projects/', label: 'Projects', color: 'green' },
-  { href: '/blog/', label: 'Writing', color: 'blue' },
-  { href: '/cv/', label: 'CV', color: 'brown' },
+  { href: '/#about', label: 'About' },
+  { href: '/projects/', label: 'Projects' },
+  { href: '/blog/', label: 'Writing' },
+  { href: '/cv/', label: 'CV' },
 ] as const;
-
-export type PairColor = (typeof sections)[number]['color'];

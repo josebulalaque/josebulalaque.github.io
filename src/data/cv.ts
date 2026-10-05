@@ -3,7 +3,7 @@
 
 export const cv = {
   summary:
-    'TODO: two or three sentences on what you do, the kind of networks and systems you look after, and what you are best at.',
+    'TODO: two or three sentences on what you do, the kind of servers and systems you look after, and what you are best at.',
 
   experience: [
     {
@@ -27,9 +27,10 @@ export const cv = {
   ],
 
   skills: [
-    { group: 'Networking', items: ['Routing and switching', 'BGP', 'OSPF', 'VLANs', 'Firewalls', 'VPN'] },
-    { group: 'Automation', items: ['Ansible', 'Python', 'Bash', 'Git', 'CI/CD'] },
-    { group: 'Infrastructure', items: ['Linux', 'NetBox', 'IPAM', 'Monitoring', 'Containers'] },
+    { group: 'Operating systems', items: ['Linux (RHEL, Ubuntu, Debian)', 'Windows Server', 'Active Directory'] },
+    { group: 'Virtualisation', items: ['VMware vSphere', 'Proxmox', 'Hyper-V', 'Containers'] },
+    { group: 'Automation', items: ['Ansible', 'Bash', 'PowerShell', 'Python', 'Git', 'CI/CD'] },
+    { group: 'Operations', items: ['Patching', 'Backup and recovery', 'Monitoring', 'Storage', 'DNS and DHCP'] },
   ],
 
   certifications: [

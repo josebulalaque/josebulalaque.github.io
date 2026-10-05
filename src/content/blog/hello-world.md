@@ -16,9 +16,11 @@ Each post is a Markdown file in `src/content/blog/`. The file name becomes the U
 - Code blocks with syntax highlighting:
 
 ```yaml
-- name: Back up running config
-  cisco.ios.ios_config:
-    backup: true
+- name: Apply security updates
+  ansible.builtin.dnf:
+    name: '*'
+    state: latest
+    security: true
 ```
 
 > Blockquotes for notes or quotes.

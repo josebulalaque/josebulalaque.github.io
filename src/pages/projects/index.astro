@@ -6,17 +6,17 @@ import { getProjects, formatDate } from '../../lib/content';
 const projects = await getProjects();
 ---
 
-<Base title="Projects" description={`Projects by ${site.name}.`} section="green">
+<Base title="Projects" description={`Projects by ${site.name}.`}>
   <div class="wrap">
     <header class="page-head">
       <h1>Projects</h1>
-      <p>Network automation, infrastructure tooling and things I've built along the way.</p>
+      <p>Server builds, automation and tools I've made to keep systems running.</p>
     </header>
 
     {
       projects.length === 0 ? (
-        <div class="pending" data-color="green">
-          <span class="jack" aria-hidden="true" />
+        <div class="pending">
+          <span class="blank" aria-hidden="true" />
           <div>
             <h2>In progress</h2>
             <p>
@@ -55,18 +55,21 @@ const projects = await getProjects();
     border-radius: 6px;
   }
 
-  /* An empty port: nothing patched in yet. */
-  .jack {
+  /* A blanking panel: rack space reserved, nothing mounted yet. */
+  .blank {
     flex: none;
-    width: 4rem;
-    aspect-ratio: 1.15;
-    background: var(--panel);
-    clip-path: polygon(0 0, 100% 0, 100% 72%, 72% 72%, 72% 100%, 28% 100%, 28% 72%, 0 72%);
+    width: 6rem;
+    height: 2.25rem;
+    border-radius: 2px;
+    background:
+      radial-gradient(circle, #8b939e 0 2.5px, transparent 3px) 0.45rem center / 0.5rem 0.5rem no-repeat,
+      radial-gradient(circle, #8b939e 0 2.5px, transparent 3px) calc(100% - 0.45rem) center / 0.5rem 0.5rem no-repeat,
+      var(--steel);
   }
 
   .pending h2 {
     margin: 0 0 0.4rem;
-    font-size: 1.75rem;
+    font-size: 1.4rem;
   }
 
   .pending p {
@@ -87,7 +90,7 @@ const projects = await getProjects();
 
   .projects h2 {
     margin: 0 0 0.25rem;
-    font-size: 1.9rem;
+    font-size: 1.5rem;
   }
 
   .links {
