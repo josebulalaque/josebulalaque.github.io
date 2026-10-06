@@ -67,27 +67,6 @@ const githubUser = developer.github.match(/github\.com\/([\w-]+)/i)?.[1] ?? deve
         >
           <span class="text-red-400">✉️</span> contact.txt (Contact)
         </a>
-        <button
-          type="button"
-          id="gui-launch-pong"
-          class="w-full text-left gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-[var(--accent)] font-bold transition-colors cursor-pointer border border-dashed border-[var(--border-color)] mt-1"
-        >
-          <span>🕹️</span> pong.sh (Pong Arcade)
-        </button>
-        <button
-          type="button"
-          id="gui-launch-snake"
-          class="w-full text-left gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-emerald-400 font-bold transition-colors cursor-pointer border border-dashed border-[var(--border-color)] mt-1"
-        >
-          <span>🐍</span> snake.sh (Snake Arcade)
-        </button>
-        <button
-          type="button"
-          id="gui-launch-radio"
-          class="w-full text-left gui-nav-item flex items-center gap-2 p-1.5 hover:bg-[var(--border-color)] text-pink-400 font-bold transition-colors cursor-pointer border border-dashed border-[var(--border-color)] mt-1"
-        >
-          <span>📻</span> radio.sh (Lo-Fi Radio)
-        </button>
       </nav>
 
       <!-- Spotify Activity Widget -->
@@ -437,50 +416,3 @@ const githubUser = developer.github.match(/github\.com\/([\w-]+)/i)?.[1] ?? deve
     </div>
   </div>
 </div>
-
-<script>
-  import { playSuccessSound } from "../utils/sound";
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const bindLaunchBtn = (id: string, callback: () => void) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      let lastTrigger = 0;
-      const handler = () => {
-        const now = Date.now();
-        if (now - lastTrigger < 300) return; // Prevent double trigger
-        lastTrigger = now;
-        callback();
-      };
-      el.addEventListener("click", handler);
-      el.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        handler();
-      }, { passive: false });
-    };
-
-    bindLaunchBtn("gui-launch-pong", () => {
-      const win = window as unknown as { togglePong?: (f?: boolean) => void };
-      if (win.togglePong) {
-        win.togglePong(true);
-        playSuccessSound();
-      }
-    });
-
-    bindLaunchBtn("gui-launch-snake", () => {
-      const win = window as unknown as { toggleSnake?: (f?: boolean) => void };
-      if (win.toggleSnake) {
-        win.toggleSnake(true);
-        playSuccessSound();
-      }
-    });
-
-    bindLaunchBtn("gui-launch-radio", () => {
-      const win = window as unknown as { radioEngine?: { toggleModal: (f?: boolean) => void } };
-      if (win.radioEngine) {
-        win.radioEngine.toggleModal(true);
-        playSuccessSound();
-      }
-    });
-  });
-</script>
